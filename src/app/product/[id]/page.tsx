@@ -11,12 +11,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const FALLBACK_IMAGE_URL = 'https://picsum.photos/seed/placeholder/600/600';
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage({ params: { id } }: { params: { id: string } }) {
   const firestore = useFirestore();
 
   const productRef = useMemoFirebase(
-    () => (firestore && params.id ? doc(firestore, 'products', params.id) : null),
-    [firestore, params.id]
+    () => (firestore && id ? doc(firestore, 'products', id) : null),
+    [firestore, id]
   );
 
   const { data: product, isLoading } = useDoc<Product>(productRef);
