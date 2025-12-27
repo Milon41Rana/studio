@@ -13,6 +13,8 @@ interface ProductCardProps {
   product: Product;
 }
 
+const FALLBACK_IMAGE_URL = 'https://picsum.photos/seed/placeholder/400/400';
+
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -25,16 +27,25 @@ export function ProductCard({ product }: ProductCardProps) {
     });
   };
 
+  const imageUrl = product.imageUrl || FALLBACK_IMAGE_URL;
+
   return (
     <Card className="flex flex-col overflow-hidden h-full shadow-md hover:shadow-xl transition-shadow duration-300 group">
       <Link href={`/product/${product.id}`} className="flex flex-col h-full">
         <div className="relative aspect-square w-full overflow-hidden">
           <Image
-            src={product.imageUrl}
+            src={imageUrl}
             alt={product.title}
             fill
             sizes="(max-width: 768px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              // In case of an error loading the primary image, switch to the fallback.
+              // Note: This requires direct DOM manipulation, which is a slight escape hatch
+              // from typical React patterns but is effective for this specific use case.
+              e.currentTarget.srcset = FALLBACK_IMAGE_URL;
+              e.currentTarget.src = FALLBACK_IMAGE_URL;
+            }}
           />
         </div>
         <CardContent className="p-4 flex-grow flex flex-col">

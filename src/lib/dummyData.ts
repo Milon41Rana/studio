@@ -1,3 +1,4 @@
+
 import { PlaceHolderImages } from './placeholder-images';
 import type { Product, Category } from './types';
 
@@ -6,6 +7,7 @@ const findImage = (id: string) => {
   const image = PlaceHolderImages.find(img => img.id === id);
   if (!image) {
     // Fallback if image is not found in placeholder data
+    console.warn(`Placeholder image with id '${id}' not found. Using a default fallback.`);
     return { imageUrl: `https://picsum.photos/seed/${id}/400/400`, imageHint: 'placeholder' };
   }
   return { imageUrl: image.imageUrl, imageHint: image.imageHint };
