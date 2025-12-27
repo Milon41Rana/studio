@@ -1,3 +1,70 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "flash-sale-banner",
+      "description": "Flash sale banner",
+      "imageUrl": "https://images.unsplash.com/photo-1587802659513-7748a6e21f0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzaG9wcGluZyUyMHNhbGV8ZW58MHx8fHwxNzY2ODE2MjY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "shopping sale"
+    },
+    {
+      "id": "product-rice",
+      "description": "Bag of rice",
+      "imageUrl": "https://images.unsplash.com/photo-1625827626291-6fbd47a431ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxyaWNlJTIwYmFnfGVufDB8fHx8MTc2Njc2ODkyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rice bag"
+    },
+    {
+      "id": "product-oil",
+      "description": "Bottle of cooking oil",
+      "imageUrl": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvaWwlMjBib3R0bGV8ZW58MHx8fHwxNzY2NzQ1MTM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "oil bottle"
+    },
+    {
+      "id": "product-earbuds",
+      "description": "Wireless earbuds",
+      "imageUrl": "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxlYXJidWRzfGVufDB8fHx8MTc2Njc0ODMyMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "earbuds"
+    },
+    {
+      "id": "product-shirt",
+      "description": "A t-shirt",
+      "imageUrl": "https://images.unsplash.com/photo-1714070700737-24acfe6b957c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dHNoaXJ0fGVufDB8fHx8MTc2NjgxNjI2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tshirt"
+    },
+    {
+      "id": "product-jeans",
+      "description": "A pair of jeans",
+      "imageUrl": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8amVhbnN8ZW58MHx8fHwxNzY2ODE2MjY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "jeans"
+    },
+    {
+      "id": "product-lentils",
+      "description": "Bag of lentils",
+      "imageUrl": "https://images.unsplash.com/photo-1612869538502-b5baa439abd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsZW50aWxzfGVufDB8fHx8MTc2NjgxNjI2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lentils"
+    },
+    {
+      "id": "product-keyboard",
+      "description": "A mechanical keyboard",
+      "imageUrl": "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxrZXlib2FyZHxlbnwwfHx8fDE3NjY2OTczNzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "keyboard"
+    },
+    {
+      "id": "product-mouse",
+      "description": "A computer mouse",
+      "imageUrl": "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtb3VzZXxlbnwwfHx8fDE3NjY3NDgzMjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mouse"
+    },
+    {
+      "id": "product-shoes",
+      "description": "A pair of sneakers",
+      "imageUrl": "https://images.unsplash.com/photo-1608667508764-33cf0726b13a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzbmVha2Vyc3xlbnwwfHx8fDE3NjY3MDkxNjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sneakers"
+    },
+    {
+      "id": "product-watch",
+      "description": "A smart watch",
+      "imageUrl": "https://images.unsplash.com/photo-1553545204-4f7d339aa06a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzbWFydHdhdGNofGVufDB8fHx8MTc2Njc3OTgxMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "smartwatch"
+    }
+  ]
 }
