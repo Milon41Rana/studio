@@ -4,10 +4,9 @@ import { FlashSaleBanner } from '@/components/FlashSaleBanner';
 import { CategoryList } from '@/components/CategoryList';
 import { ProductCard } from '@/components/ProductCard';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, writeBatch, doc } from 'firebase/firestore';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect } from 'react';
 import { products as dummyProducts, categories as dummyCategories } from '@/lib/dummyData';
 import { Button } from '@/components/ui/button';
 
@@ -18,7 +17,6 @@ export default function Home() {
   const seedDatabase = async () => {
     if (!firestore) return;
     try {
-      // Check for products
       const productsCollection = collection(firestore, 'products');
       const productsSnapshot = await getDocs(query(productsCollection));
       if (productsSnapshot.empty) {
@@ -32,7 +30,6 @@ export default function Home() {
         console.log('Products seeded!');
       }
 
-      // Check for categories
       const categoriesCollection = collection(firestore, 'categories');
       const categoriesSnapshot = await getDocs(query(categoriesCollection));
       if (categoriesSnapshot.empty) {
@@ -45,6 +42,7 @@ export default function Home() {
         await batch.commit();
         console.log('Categories seeded!');
       }
+      
       // Reload to see the data
       window.location.reload();
 
@@ -52,7 +50,6 @@ export default function Home() {
       console.error("Error seeding database: ", error);
     }
   };
-
 
   const productsQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'products'), orderBy('title')) : null),

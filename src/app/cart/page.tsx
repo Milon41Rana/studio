@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Minus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function CartPage() {
@@ -40,8 +40,12 @@ export default function CartPage() {
       return;
     }
     
-    const ordersCollection = collection(firestore, `users/${user.uid}/orders`);
+    // This now saves to a top-level `orders` collection for easier admin access
+    const ordersCollection = collection(firestore, 'orders');
+    const newOrderRef = doc(ordersCollection); // Create a reference to get the ID
+
     const orderData = {
+      id: newOrderRef.id,
       userId: user.uid,
       orderDate: serverTimestamp(),
       totalAmount: totalPrice,
@@ -55,7 +59,12 @@ export default function CartPage() {
       status: 'Pending'
     };
 
+    // Use the non-blocking function to set the document with the generated ID
     addDocumentNonBlocking(ordersCollection, orderData);
+    
+    // Also save to the user's subcollection if desired for user-specific queries
+    const userOrdersCollection = collection(firestore, `users/${user.uid}/orders`);
+    addDocumentNonBlocking(userOrdersCollection, orderData);
     
     clearCart();
 

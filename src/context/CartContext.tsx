@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Product } from '@/lib/types';
 import { useUser, useAuth, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 
@@ -31,10 +31,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const firestore = useFirestore();
 
   useEffect(() => {
-    if (!auth || isUserLoading) return;
-    if (!user) {
-      initiateAnonymousSignIn(auth);
-    }
+    if (!auth || isUserLoading || user) return;
+    initiateAnonymousSignIn(auth);
   }, [user, isUserLoading, auth]);
 
   const cartRef = useMemoFirebase(
@@ -44,31 +42,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     const fetchCart = async () => {
-      if (cartRef) {
-        setIsCartLoading(true);
-        try {
-          const docSnap = await getDoc(cartRef);
-          if (docSnap.exists()) {
-            setCart(docSnap.data().items || []);
-          } else {
+      if (!user || !cartRef) {
+          if (!isUserLoading) {
+            setIsCartLoading(false);
             setCart([]);
           }
-        } catch (error) {
-          console.error("Error fetching cart:", error);
-        } finally {
-          setIsCartLoading(false);
+          return;
+      }
+      
+      setIsCartLoading(true);
+      try {
+        const docSnap = await getDoc(cartRef);
+        if (docSnap.exists()) {
+          setCart(docSnap.data().items || []);
+        } else {
+          setCart([]);
         }
-      } else if (!isUserLoading) {
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+      } finally {
         setIsCartLoading(false);
-        setCart([]);
       }
     };
     fetchCart();
-  }, [cartRef, isUserLoading]);
+  }, [cartRef, user, isUserLoading]);
 
   const updateFirestoreCart = (newCart: CartItem[]) => {
     if (cartRef) {
-      setDocumentNonBlocking(cartRef, { items: newCart }, { merge: true });
+      setDocumentNonBlocking(cartRef, { items: newCart }, { merge: false }); // Overwrite cart
     }
   };
 
@@ -113,7 +114,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     setCart([]);
-    updateFirestoreCart([]);
+    if (cartRef) {
+        setDocumentNonBlocking(cartRef, { items: [] }, { merge: false });
+    }
   };
 
   return (
