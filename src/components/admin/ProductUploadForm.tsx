@@ -25,6 +25,7 @@ import {
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Category } from '@/lib/types';
 import { collection } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const productFormSchema = z.object({
   name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
@@ -96,20 +97,24 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCategories}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a product category" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {categoriesFromDB?.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isLoadingCategories ? (
+                 <Skeleton className="h-10 w-full" />
+              ) : (
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCategories}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a product category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categoriesFromDB?.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <FormMessage />
             </FormItem>
           )}
