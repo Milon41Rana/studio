@@ -1,0 +1,182 @@
+/**
+ * # Firestore Security Rules
+ *
+ * ## Core Philosophy
+ * This ruleset implements a hybrid security model for an e-commerce application.
+ * It provides public, read-only access to globally shared data like products and
+ * categories, while enforcing a strict user-ownership model for private data
+ * such as user profiles and order histories.
+ *
+ * ## Data Structure
+ * The data is organized into two main areas:
+ * 1. Top-level collections for public data (`/products`, `/categories`). This allows
+ *    for efficient querying across the entire application for all users.
+ * 2. A user-siloed structure (`/users/{userId}/...`) for all private data.
+ *    Orders and other user-specific information are nested under their respective
+ *    user document, ensuring data cannot be accessed by other users.
+ *
+ * ## Key Security Decisions
+ * - **Public Read, Admin Write**: Products and categories are readable by anyone
+ *   to populate the main shop pages. However, write access is currently disabled
+ *   pending the implementation of an admin role system. This is a secure-by-default
+ *   posture.
+ * - **Strict Ownership**: All data under `/users/{userId}` is accessible only to the
+ *   authenticated user whose UID matches `{userId}`. This prevents users from
+ *   viewing or modifying each other's profiles, orders, or other private data.
+ * - **No User Listing**: The top-level `/users` collection cannot be listed, which
+ *   prevents malicious actors from enumerating all application users.
+ * - **Path-Based Authorization**: The rules heavily leverage the document path
+ *   (e.g., `/users/{userId}/...`) to make authorization decisions. This avoids
+ *   slow and costly `get()` calls to other documents, resulting in more performant
+ *   and scalable rules.
+ * - **Relational Integrity**: On creation, rules ensure that documents contain
+ *   the correct ownership ID (e.g., an Order document must have a `userId` field
+ *   that matches the user creating it). This ownership link is then enforced
+ *   as immutable on all subsequent updates.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    //-------------------------------------------------------------------------
+    // Helper Functions
+    //-------------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing document ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document.
+     * Used for update and delete operations to prevent acting on non-existent data.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * On create, validates that a document's internal 'id' field matches
+     * the user ID from the path.
+     */
+    function hasCorrectUserIdOnCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * On update, ensures the internal 'id' field of a user document is immutable.
+     */
+    function isUserIdImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * On create, validates that an order's internal 'userId' field matches
+     * the user ID from the path. This creates an unbreakable ownership link.
+     */
+    function hasCorrectOrderOwnerOnCreate(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    /**
+     * On update, ensures the internal 'userId' field of an order is immutable.
+     */
+    function isOrderOwnerImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+
+    //-------------------------------------------------------------------------
+    // Public Collections
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Anyone can view products, but only admins should write them.
+     * @path /products/{productId}
+     * @allow (get, list) An anonymous user can view all products to browse the store.
+     * @deny (create, update, delete) A signed-in user cannot create or modify a product.
+     * @principle Public read access for global data, with writes locked down.
+     */
+    match /products/{productId} {
+      allow get, list: if true;
+      // CRITICAL: Cannot implement admin-only writes. The IR does not define an admin role
+      // via custom claims or a user document field. Writes are disabled for security.
+      allow create, update, delete: if false; // TODO: Implement admin role check once available.
+    }
+
+    /**
+     * @description Anyone can view categories, but only admins should write them.
+     * @path /categories/{categoryId}
+     * @allow (get, list) An anonymous user can view all categories to filter products.
+     * @deny (create, update, delete) A signed-in user cannot create a new category.
+     * @principle Public read access for global data, with writes locked down.
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      // CRITICAL: Cannot implement admin-only writes. The IR does not define an admin role
+      // via custom claims or a user document field. Writes are disabled for security.
+      allow create, update, delete: if false; // TODO: Implement admin role check once available.
+    }
+
+
+    //-------------------------------------------------------------------------
+    // User-Owned Data
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Manages user profile data. Users can create and manage their own
+     *              profile, but cannot view or edit others' profiles.
+     * @path /users/{userId}
+     * @allow (create) A new user can create their own user document if the doc ID matches their UID.
+     * @allow (get, update) A user can read and update their own document.
+     * @deny (list) A user cannot list all other users in the system.
+     * @deny (get) A user cannot read another user's profile document.
+     * @principle Enforces strict ownership and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
+      allow update: if isExistingOwner(userId) && isUserIdImmutable();
+      allow delete: if false;
+    }
+
+    /**
+     * @description Manages a user's order history. Access is restricted to the owner.
+     * @path /users/{userId}/orders/{orderId}
+     * @allow (create, get, list, update, delete) A user can manage their own orders.
+     * @deny (get, list) A user cannot see another user's order history.
+     * @principle Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/orders/{orderId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasCorrectOrderOwnerOnCreate(userId);
+      allow update: if isExistingOwner(userId) && isOrderOwnerImmutable();
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Manages the specific items within an order. Access is inherited.
+       * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
+       * @allow (get, list) A user can view the items within one of their own orders.
+       * @deny (get) A user cannot view the items in another user's order.
+       * @principle Access is granted based on ownership of the parent documents in the path.
+       */
+      match /orderItems/{orderItemId} {
+        allow get, list: if isOwner(userId);
+        // Order items are created as part of the parent order transaction and are not
+        // intended to be created, updated, or deleted individually via client requests.
+        allow create, update, delete: if false;
+      }
+    }
+  }
+}
