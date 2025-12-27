@@ -198,15 +198,16 @@ service cloud.firestore {
      * @description Top-level collection for all orders, intended for admin use.
      *              This is a denormalized copy of the data in users/{userId}/orders.
      * @path /orders/{orderId}
+     * @allow (create) An authenticated user can create an order.
      * @allow (get, list, update) A signed-in user (acting as admin) can manage all orders.
-     * @deny (create, delete) Creation happens via user action, deletion is disallowed for record-keeping.
+     * @deny (delete) Deletion is disallowed for record-keeping.
      * @principle Centralized data for administrative roles. Assumes any signed-in user is an admin for this example.
      */
     match /orders/{orderId} {
       // In a real app, you would check for an admin claim: request.auth.token.admin == true
       allow get, list, update: if isSignedIn();
-      allow create, delete: if false;
+      allow create: if isSignedIn() && hasCorrectOrderOwnerOnCreate(request.auth.uid);
+      allow delete: if false;
     }
   }
 }
-    
