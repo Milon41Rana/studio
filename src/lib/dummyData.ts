@@ -8,7 +8,7 @@ const findImage = (id: string) => {
     // Fallback if image is not found in placeholder data
     return { imageUrl: `https://picsum.photos/seed/${id}/400/400`, imageHint: 'placeholder' };
   }
-  return { imageUrl: image.imageUrl, imageHint: 'placeholder' };
+  return { imageUrl: image.imageUrl, imageHint: image.imageHint };
 };
 
 export const categories: Category[] = [
@@ -20,7 +20,7 @@ export const categories: Category[] = [
   { id: 'toys', name: 'Toys' },
 ];
 
-export const products: Omit<Product, 'description' | 'title'>[] & {name: string, imageHint: string}[] = [
+export const products: (Omit<Product, 'description' | 'title'> & {name: string, imageHint: string})[] = [
   { id: '1', name: 'Basmati Rice 5kg', price: 750, categoryId: 'grocery', ...findImage('product-rice') },
   { id: '2', name: 'Soybean Oil 5L', price: 820, categoryId: 'grocery', ...findImage('product-oil') },
   { id: '3', name: 'Wireless Earbuds Pro', price: 3500, categoryId: 'electronics', ...findImage('product-earbuds') },
