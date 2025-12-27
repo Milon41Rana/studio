@@ -1,7 +1,12 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Product } from '@/lib/dummyData';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import type { Product } from '@/lib/types';
+import { useUser, useAuth, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
+
 
 export interface CartItem extends Product {
   quantity: number;
@@ -13,47 +18,106 @@ interface CartContextType {
   updateQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
+  isCartLoading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartLoading, setIsCartLoading] = useState(true);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const firestore = useFirestore();
+
+  useEffect(() => {
+    if (!auth || isUserLoading) return;
+    if (!user) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [user, isUserLoading, auth]);
+
+  const cartRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, 'carts', user.uid) : null),
+    [firestore, user]
+  );
+  
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (cartRef) {
+        setIsCartLoading(true);
+        try {
+          const docSnap = await getDoc(cartRef);
+          if (docSnap.exists()) {
+            setCart(docSnap.data().items || []);
+          } else {
+            setCart([]);
+          }
+        } catch (error) {
+          console.error("Error fetching cart:", error);
+        } finally {
+          setIsCartLoading(false);
+        }
+      } else if (!isUserLoading) {
+        setIsCartLoading(false);
+        setCart([]);
+      }
+    };
+    fetchCart();
+  }, [cartRef, isUserLoading]);
+
+  const updateFirestoreCart = (newCart: CartItem[]) => {
+    if (cartRef) {
+      setDocumentNonBlocking(cartRef, { items: newCart }, { merge: true });
+    }
+  };
 
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
+      let newCart;
       if (existingItem) {
-        return prevCart.map((item) =>
+        newCart = prevCart.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
-        return [...prevCart, { ...product, quantity: 1 }];
+        newCart = [...prevCart, { ...product, quantity: 1 }];
       }
+      updateFirestoreCart(newCart);
+      return newCart;
     });
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
     setCart((prevCart) => {
+      let newCart;
       if (quantity <= 0) {
-        return prevCart.filter((item) => item.id !== productId);
+        newCart = prevCart.filter((item) => item.id !== productId);
+      } else {
+        newCart = prevCart.map((item) =>
+          item.id === productId ? { ...item, quantity } : item
+        );
       }
-      return prevCart.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      );
+      updateFirestoreCart(newCart);
+      return newCart;
     });
   };
 
   const removeFromCart = (productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+    setCart((prevCart) => {
+      const newCart = prevCart.filter((item) => item.id !== productId);
+      updateFirestoreCart(newCart);
+      return newCart;
+    });
   };
 
   const clearCart = () => {
     setCart([]);
+    updateFirestoreCart([]);
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, updateQuantity, removeFromCart, clearCart }}>
+    <CartContext.Provider value={{ cart, addToCart, updateQuantity, removeFromCart, clearCart, isCartLoading }}>
       {children}
     </CartContext.Provider>
   );

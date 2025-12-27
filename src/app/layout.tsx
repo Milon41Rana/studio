@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'Super Shop',
@@ -23,14 +24,16 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background flex flex-col h-full">
-        <CartProvider>
-          <Header />
-          <main className="flex-grow pt-6 pb-20 md:pb-0">
-            {children}
-          </main>
-          <BottomNav />
-          <Toaster />
-        </CartProvider>
+        <FirebaseClientProvider>
+          <CartProvider>
+            <Header />
+            <main className="flex-grow pt-6 pb-20 md:pb-0">
+              {children}
+            </main>
+            <BottomNav />
+            <Toaster />
+          </CartProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

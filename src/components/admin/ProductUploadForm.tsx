@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -13,23 +13,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { categories } from "@/lib/dummyData";
+} from '@/components/ui/select';
+import { categories } from '@/lib/dummyData';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import type { Category } from '@/lib/types';
+import { collection } from 'firebase/firestore';
 
 const productFormSchema = z.object({
-  name: z.string().min(3, { message: "Product name must be at least 3 characters." }),
-  price: z.coerce.number().positive({ message: "Price must be a positive number." }),
-  category: z.string({ required_error: "Please select a category." }),
-  imageUrl: z.string().url({ message: "Please enter a valid URL." }),
+  name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
+  price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
+  category: z.string({ required_error: 'Please select a category.' }),
+  imageUrl: z.string().url({ message: 'Please enter a valid URL.' }),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
@@ -39,24 +41,28 @@ interface ProductUploadFormProps {
 }
 
 export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
-  const { toast } = useToast();
+  const firestore = useFirestore();
+  const categoriesCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'categories') : null),
+    [firestore]
+  );
+  const { data: categoriesFromDB, isLoading: isLoadingCategories } = useCollection<Category>(categoriesCollection);
+
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
-      name: "",
+      name: '',
       price: undefined,
-      imageUrl: "",
+      imageUrl: '',
     },
   });
 
   function handleFormSubmit(data: ProductFormData) {
     onSubmit(data);
-    toast({
-      title: "Product Added",
-      description: `${data.name} has been successfully added.`,
-    });
     form.reset();
   }
+
+  const availableCategories = categoriesFromDB || categories;
 
   return (
     <Form {...form}>
@@ -93,14 +99,14 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCategories}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a product category" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {categories.map((category) => (
+                  {availableCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
                     </SelectItem>

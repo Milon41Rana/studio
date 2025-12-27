@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
@@ -9,10 +9,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Separator } from '@/components/ui/separator';
 import { Plus, Minus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const { user } = useUser();
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -25,8 +30,35 @@ export default function CartPage() {
       });
       return;
     }
+
+    if (!firestore || !user) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Cannot place order. User not logged in or database not available.',
+      });
+      return;
+    }
+    
+    const ordersCollection = collection(firestore, `users/${user.uid}/orders`);
+    const orderData = {
+      userId: user.uid,
+      orderDate: serverTimestamp(),
+      totalAmount: totalPrice,
+      orderItems: cart.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        title: item.title,
+        imageUrl: item.imageUrl,
+      })),
+      status: 'Pending'
+    };
+
+    addDocumentNonBlocking(ordersCollection, orderData);
     
     clearCart();
+
     toast({
       title: 'Order Placed!',
       description: 'Your order has been successfully placed. Thank you for shopping!',
@@ -53,10 +85,10 @@ export default function CartPage() {
           {cart.map((item) => (
             <Card key={item.id} className="flex items-center p-4">
               <div className="relative w-24 h-24 rounded-md overflow-hidden mr-4">
-                <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
               </div>
               <div className="flex-grow">
-                <h2 className="font-semibold">{item.name}</h2>
+                <h2 className="font-semibold">{item.title}</h2>
                 <p className="text-muted-foreground">৳{item.price}</p>
               </div>
               <div className="flex items-center gap-2">

@@ -1,11 +1,40 @@
-import { products } from '@/lib/dummyData';
+'use client';
+
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { Star } from 'lucide-react';
+import { doc } from 'firebase/firestore';
+import type { Product } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = products.find((p) => p.id === params.id);
+  const firestore = useFirestore();
+
+  const productRef = useMemoFirebase(
+    () => (firestore && params.id ? doc(firestore, 'products', params.id) : null),
+    [firestore, params.id]
+  );
+
+  const { data: product, isLoading } = useDoc<Product>(productRef);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+          <Skeleton className="aspect-square rounded-lg" />
+          <div className="flex flex-col justify-center space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-8 w-1/4" />
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-12 w-48" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     notFound();
@@ -17,15 +46,14 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         <div className="relative aspect-square rounded-lg overflow-hidden shadow-lg">
           <Image
             src={product.imageUrl}
-            alt={product.name}
+            alt={product.title}
             fill
             className="object-cover"
-            data-ai-hint={product.imageHint}
             sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
         <div className="flex flex-col justify-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">{product.name}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">{product.title}</h1>
           <p className="text-2xl font-semibold text-primary mb-4">৳{product.price}</p>
           <div className="flex items-center gap-1 mb-4">
             {[...Array(5)].map((_, i) => (
@@ -34,7 +62,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <span className="text-muted-foreground ml-2">(123 reviews)</span>
           </div>
           <p className="text-muted-foreground mb-6">
-            This is a detailed description of the {product.name}. It highlights its key features, benefits, and why it's a must-have item. Crafted with the finest materials and designed for both style and functionality.
+            {product.description}
           </p>
           <div className="w-full sm:w-auto">
              <AddToCartButton product={product} />
@@ -43,10 +71,4 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       </div>
     </div>
   );
-}
-
-export async function generateStaticParams() {
-  return products.map((product) => ({
-    id: product.id,
-  }));
 }
