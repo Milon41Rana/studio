@@ -22,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { categories } from '@/lib/dummyData';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Category } from '@/lib/types';
 import { collection } from 'firebase/firestore';
@@ -61,8 +60,6 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     onSubmit(data);
     form.reset();
   }
-
-  const availableCategories = categoriesFromDB || categories;
 
   return (
     <Form {...form}>
@@ -106,7 +103,7 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {availableCategories.map((category) => (
+                  {categoriesFromDB?.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
                     </SelectItem>
