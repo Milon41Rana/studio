@@ -20,7 +20,7 @@ export const categories: Category[] = [
   { id: 'toys', name: 'Toys' },
 ];
 
-export const products: (Omit<Product, 'description' | 'title'> & {name: string, imageHint: string})[] = [
+export const products: (Omit<Product, 'description' | 'title'> & {name: string})[] = [
   { id: '1', name: 'Basmati Rice 5kg', price: 750, categoryId: 'grocery', ...findImage('product-rice') },
   { id: '2', name: 'Soybean Oil 5L', price: 820, categoryId: 'grocery', ...findImage('product-oil') },
   { id: '3', name: 'Wireless Earbuds Pro', price: 3500, categoryId: 'electronics', ...findImage('product-earbuds') },
