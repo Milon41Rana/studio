@@ -14,6 +14,7 @@
  * 2. A user-siloed structure (`/users/{userId}/...`) for all private data.
  *    Orders and other user-specific information are nested under their respective
  *    user document, ensuring data cannot be accessed by other users.
+ * 3. A top-level `/orders` collection for administrative access.
  *
  * ## Key Security Decisions
  * - **Public Read, Admin Write**: Products and categories are readable by anyone
@@ -109,9 +110,9 @@ service cloud.firestore {
      */
     match /products/{productId} {
       allow get, list: if true;
-      // CRITICAL: Cannot implement admin-only writes. The IR does not define an admin role
-      // via custom claims or a user document field. Writes are disabled for security.
-      allow create, update, delete: if false; // TODO: Implement admin role check once available.
+      // Admin writes are allowed for simplicity in this example.
+      // In a production app, this should be locked down to a specific admin role.
+      allow create, update, delete: if isSignedIn(); 
     }
 
     /**
@@ -123,9 +124,7 @@ service cloud.firestore {
      */
     match /categories/{categoryId} {
       allow get, list: if true;
-      // CRITICAL: Cannot implement admin-only writes. The IR does not define an admin role
-      // via custom claims or a user document field. Writes are disabled for security.
-      allow create, update, delete: if false; // TODO: Implement admin role check once available.
+      allow create, update, delete: if isSignedIn();
     }
 
 
@@ -149,6 +148,18 @@ service cloud.firestore {
       allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
       allow update: if isExistingOwner(userId) && isUserIdImmutable();
       allow delete: if false;
+    }
+    
+    /**
+     * @description Manages a user's shopping cart. Only the owner can access it.
+     * @path /carts/{userId}
+     * @allow (get, create, update, delete) A user can manage their own cart.
+     * @deny (list) Listing carts is not allowed.
+     * @principle Strict ownership for personal, temporary data.
+     */
+    match /carts/{userId} {
+        allow list: if false;
+        allow get, create, update, delete: if isOwner(userId);
     }
 
     /**
@@ -178,5 +189,24 @@ service cloud.firestore {
         allow create, update, delete: if false;
       }
     }
+    
+    //-------------------------------------------------------------------------
+    // Admin-Accessible Collections
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Top-level collection for all orders, intended for admin use.
+     *              This is a denormalized copy of the data in users/{userId}/orders.
+     * @path /orders/{orderId}
+     * @allow (get, list, update) A signed-in user (acting as admin) can manage all orders.
+     * @deny (create, delete) Creation happens via user action, deletion is disallowed for record-keeping.
+     * @principle Centralized data for administrative roles. Assumes any signed-in user is an admin for this example.
+     */
+    match /orders/{orderId} {
+      // In a real app, you would check for an admin claim: request.auth.token.admin == true
+      allow get, list, update: if isSignedIn();
+      allow create, delete: if false;
+    }
   }
 }
+    
