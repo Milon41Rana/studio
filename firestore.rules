@@ -57,6 +57,13 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    /**
+     * Checks if the requesting user is the designated admin.
+     */
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'ranamilon41@gmail.com';
+    }
 
     /**
      * Checks for ownership on an existing document.
@@ -106,13 +113,11 @@ service cloud.firestore {
      * @path /products/{productId}
      * @allow (get, list) An anonymous user can view all products to browse the store.
      * @deny (create, update, delete) A signed-in user cannot create or modify a product.
-     * @principle Public read access for global data, with writes locked down.
+     * @principle Public read access for global data, with writes locked down to admin.
      */
     match /products/{productId} {
       allow get, list: if true;
-      // Admin writes are allowed for simplicity in this example.
-      // In a production app, this should be locked down to a specific admin role.
-      allow create, update, delete: if isSignedIn(); 
+      allow create, update, delete: if isAdmin(); 
     }
 
     /**
@@ -120,11 +125,11 @@ service cloud.firestore {
      * @path /categories/{categoryId}
      * @allow (get, list) An anonymous user can view all categories to filter products.
      * @deny (create, update, delete) A signed-in user cannot create a new category.
-     * @principle Public read access for global data, with writes locked down.
+     * @principle Public read access for global data, with writes locked down to admin.
      */
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create, update, delete: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
 
@@ -204,8 +209,7 @@ service cloud.firestore {
      * @principle Centralized data for administrative roles. Assumes any signed-in user is an admin for this example.
      */
     match /orders/{orderId} {
-      // In a real app, you would check for an admin claim: request.auth.token.admin == true
-      allow get, list, update: if isSignedIn();
+      allow get, list, update: if isAdmin();
       allow create: if isSignedIn() && hasCorrectOrderOwnerOnCreate(request.auth.uid);
       allow delete: if false;
     }

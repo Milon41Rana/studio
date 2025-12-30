@@ -4,10 +4,14 @@ import Link from 'next/link';
 import { Home, ShoppingCart, Package, UserCog } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Badge } from '@/components/ui/badge';
+import { useUser } from '@/firebase';
 
 export function BottomNav() {
   const { cart } = useCart();
+  const { user } = useUser();
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const isAdmin = user && user.email === 'ranamilon41@gmail.com';
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-sm border-t z-50 flex items-center justify-around">
@@ -28,10 +32,12 @@ export function BottomNav() {
         <Package className="h-6 w-6" />
         <span className="text-xs font-medium">Orders</span>
       </Link>
-      <Link href="/admin" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
-        <UserCog className="h-6 w-6" />
-        <span className="text-xs font-medium">Admin</span>
-      </Link>
+      {isAdmin && (
+        <Link href="/admin" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
+          <UserCog className="h-6 w-6" />
+          <span className="text-xs font-medium">Admin</span>
+        </Link>
+      )}
     </nav>
   );
 }
