@@ -42,9 +42,9 @@ export default function LoginPage() {
     },
   });
 
-  // Redirect if user is already logged in
+  // Redirect if user is already logged in with a non-anonymous account
   useEffect(() => {
-    if (!isUserLoading && user) {
+    if (!isUserLoading && user && !user.isAnonymous) {
       if (user.email === 'ranamilon41@gmail.com') {
         router.replace('/admin');
       } else {
@@ -88,13 +88,24 @@ export default function LoginPage() {
     }
   }
   
-  if (isUserLoading || user) {
+  // Show loading state while checking user status
+  if (isUserLoading) {
     return (
        <div className="flex items-center justify-center min-h-[400px]">
           <p>Loading...</p>
        </div>
     );
   }
+  
+  // If user is logged in (but not anon), show loading while redirecting
+  if (user && !user.isAnonymous) {
+    return (
+       <div className="flex items-center justify-center min-h-[400px]">
+          <p>Redirecting...</p>
+       </div>
+    );
+  }
+
 
   return (
     <div className="flex items-center justify-center py-12 px-4">
