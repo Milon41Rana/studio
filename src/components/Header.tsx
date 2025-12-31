@@ -22,7 +22,7 @@ export function Header() {
           {isAdmin ? (
              <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
           ) : (
-            <Link href="/login" className="transition-colors hover:text-primary">Login</Link>
+            <Link href="/ourshop7862" className="transition-colors hover:text-primary">Login</Link>
           )}
         </nav>
       </div>

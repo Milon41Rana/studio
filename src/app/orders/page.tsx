@@ -46,13 +46,13 @@ export default function OrdersPage() {
     );
   }
 
-  if (!user) {
+  if (!user || user.isAnonymous) {
     return (
        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
         <h1 className="text-3xl font-bold mb-4">Please Log In</h1>
         <p className="text-muted-foreground mb-6">You need to be logged in to view your orders.</p>
         <Button asChild>
-          <Link href="/login">Login</Link>
+          <Link href="/ourshop7862">Login</Link>
         </Button>
       </div>
     )

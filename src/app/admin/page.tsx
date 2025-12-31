@@ -5,11 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductUploadForm, type ProductFormData } from '@/components/admin/ProductUploadForm';
 import { OrderManagementTable } from '@/components/admin/OrderManagementTable';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useAuth } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import withAdminAuth from '@/components/auth/withAdminAuth';
+import { Button } from '@/components/ui/button';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 
 interface OrderItem {
@@ -31,6 +34,8 @@ interface Order {
 
 function AdminPage() {
   const firestore = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
 
   const allOrdersQuery = useMemoFirebase(
@@ -66,10 +71,31 @@ function AdminPage() {
       description: `${data.name} is being added to the database.`,
     });
   };
+  
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/');
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+    } catch (error) {
+      console.error('Logout Error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Logout Failed',
+        description: 'An error occurred while logging out.',
+      });
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+         <Button onClick={handleLogout} variant="outline">Logout</Button>
+      </div>
 
       <Tabs defaultValue="products">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
