@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { FlashSaleBanner } from '@/components/FlashSaleBanner';
 import { CategoryList } from '@/components/CategoryList';
 import { ProductCard } from '@/components/ProductCard';
@@ -10,8 +12,40 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { products as dummyProducts, categories as dummyCategories } from '@/lib/dummyData';
 import { Button } from '@/components/ui/button';
 
-export default function Home() {
+function ProductGrid() {
   const firestore = useFirestore();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const searchTerm = searchParams.get('q') || '';
+  const categoryFilter = searchParams.get('category') || '';
+
+  const productsQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'products'), orderBy('title')) : null),
+    [firestore]
+  );
+  
+  const { data: products, isLoading } = useCollection<Product>(productsQuery);
+
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    if (products) {
+      let tempProducts = products;
+
+      if (categoryFilter) {
+        tempProducts = tempProducts.filter(p => p.categoryId === categoryFilter);
+      }
+
+      if (searchTerm) {
+        tempProducts = tempProducts.filter(p => 
+          p.title.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      
+      setFilteredProducts(tempProducts);
+    }
+  }, [searchTerm, categoryFilter, products]);
 
   // Seed database if it's empty
   const seedDatabase = async () => {
@@ -43,7 +77,6 @@ export default function Home() {
         console.log('Categories seeded!');
       }
       
-      // Reload to see the data
       window.location.reload();
 
     } catch (error) {
@@ -51,38 +84,58 @@ export default function Home() {
     }
   };
 
-  const productsQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'products'), orderBy('title')) : null),
-    [firestore]
-  );
-  
-  const { data: products, isLoading } = useCollection<Product>(productsQuery);
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        {[...Array(10)].map((_, i) => (
+          <Skeleton key={i} className="h-64 w-full" />
+        ))}
+      </div>
+    );
+  }
 
+  if (!isLoading && (!products || products.length === 0)) {
+      return (
+          <div className="text-center py-12">
+              <p className="mb-4">Your database is currently empty.</p>
+              <Button onClick={seedDatabase}>Seed Initial Data</Button>
+          </div>
+      );
+  }
+
+  if (filteredProducts.length === 0 && (searchTerm || categoryFilter)) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-xl font-semibold mb-2">No Products Found</h3>
+        <p className="text-muted-foreground mb-4">Try adjusting your search or filter.</p>
+        <Button onClick={() => router.push('/')}>Clear Filters</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+      {filteredProducts.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+}
+
+
+export default function Home() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
       <FlashSaleBanner />
-      <CategoryList />
+      <Suspense fallback={<Skeleton className="h-20 w-full" />}>
+        <CategoryList />
+      </Suspense>
 
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4 font-headline">Featured Products</h2>
-        {isLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-            {[...Array(10)].map((_, i) => (
-              <Skeleton key={i} className="h-64 w-full" />
-            ))}
-          </div>
-        )}
-        {!isLoading && (!products || products.length === 0) && (
-            <div className="text-center py-12">
-                <p className="mb-4">Your database is currently empty.</p>
-                <Button onClick={seedDatabase}>Seed Initial Data</Button>
-            </div>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-          {products?.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <Suspense fallback={<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">{[...Array(10)].map((_, i) => (<Skeleton key={i} className="h-64 w-full" />))}</div>}>
+           <ProductGrid />
+        </Suspense>
       </div>
     </div>
   );

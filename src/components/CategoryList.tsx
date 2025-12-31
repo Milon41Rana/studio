@@ -6,9 +6,13 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, orderBy, query } from 'firebase/firestore';
 import type { Category } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSearchParams } from 'next/navigation';
 
 export function CategoryList() {
   const firestore = useFirestore();
+  const searchParams = useSearchParams();
+  const activeCategory = searchParams.get('category');
+
   const categoriesQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'categories'), orderBy('name')) : null),
     [firestore]
@@ -21,8 +25,13 @@ export function CategoryList() {
         <div className="flex space-x-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
             {isLoading && [...Array(6)].map((_, i) => <Skeleton key={i} className="h-10 w-24 rounded-md" />)}
             {categories?.map((category) => (
-                <Button key={category.id} variant="secondary" className="shrink-0 shadow-sm" asChild>
-                    <Link href={`/category/${category.id}`}>{category.name}</Link>
+                <Button 
+                  key={category.id} 
+                  variant={activeCategory === category.id ? 'default' : 'secondary'} 
+                  className="shrink-0 shadow-sm" 
+                  asChild
+                >
+                    <Link href={`/?category=${category.id}`}>{category.name}</Link>
                 </Button>
             ))}
         </div>

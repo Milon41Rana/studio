@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, UserCog } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { useUser } from '@/firebase';
+import { SearchBar } from './SearchBar';
 
 export function Header() {
   const { user } = useUser();
@@ -15,7 +16,10 @@ export function Header() {
           <Package className="h-6 w-6 text-primary" />
           <span className="font-headline">Super Shop</span>
         </Link>
-        <nav className="flex items-center space-x-6 text-sm font-medium">
+        <div className="flex-1">
+          <SearchBar />
+        </div>
+        <nav className="flex items-center space-x-6 text-sm font-medium ml-6">
           <Link href="/" className="transition-colors hover:text-primary">Home</Link>
           <Link href="/cart" className="transition-colors hover:text-primary">Cart</Link>
           <Link href="/orders" className="transition-colors hover:text-primary">Orders</Link>
