@@ -36,7 +36,7 @@ export default function OrdersPage() {
   
   const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
 
-  if (isUserLoading || isLoading) {
+  if (isUserLoading || (isLoading && !orders)) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <Skeleton className="h-10 w-1/3" />

@@ -1,13 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, Search } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { SearchBar } from './SearchBar';
+import { Button } from './ui/button';
+import { signOut } from 'firebase/auth';
+import { useAuth } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export function Header() {
   const { user } = useUser();
+  const auth = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
   const isAdmin = user && user.email === 'ranamilon41@gmail.com';
+  const isLoggedIn = user && !user.isAnonymous;
+
+  const handleLogout = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      router.push('/');
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+    } catch (error) {
+      console.error('Logout Error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Logout Failed',
+        description: 'An error occurred while logging out.',
+      });
+    }
+  };
 
   return (
     <header className="bg-card/80 backdrop-blur-sm sticky top-0 z-40 w-full border-b">
@@ -19,14 +48,32 @@ export function Header() {
         <div className="flex-1 md:flex-none md:w-auto">
           <SearchBar />
         </div>
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium ml-auto">
-          <Link href="/" className="transition-colors hover:text-primary">Home</Link>
-          <Link href="/cart" className="transition-colors hover:text-primary">Cart</Link>
-          <Link href="/orders" className="transition-colors hover:text-primary">Orders</Link>
-          {isAdmin ? (
-             <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
+        <nav className="hidden md:flex items-center space-x-4 text-sm font-medium ml-auto">
+          <Button variant="ghost" asChild>
+            <Link href="/">Home</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/cart">Cart</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/orders">Orders</Link>
+          </Button>
+          
+          {isLoggedIn ? (
+            <>
+              {isAdmin && (
+                <Button variant="ghost" asChild>
+                  <Link href="/admin">Admin</Link>
+                </Button>
+              )}
+              <span className="text-muted-foreground">|</span>
+              <span className="font-semibold">{user.displayName || user.email}</span>
+              <Button variant="outline" onClick={handleLogout}>Logout</Button>
+            </>
           ) : (
-            <Link href="/ourshop7862" className="transition-colors hover:text-primary">Login</Link>
+             <Button asChild>
+                <Link href="/ourshop7862">Login</Link>
+            </Button>
           )}
         </nav>
       </div>

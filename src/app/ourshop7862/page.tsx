@@ -13,13 +13,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { FirebaseError } from 'firebase/app';
+import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -111,8 +113,8 @@ export default function LoginPage() {
     <div className="flex items-center justify-center py-12 px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Admin Login</CardTitle>
-          <CardDescription>Enter your credentials to access the admin dashboard.</CardDescription>
+          <CardTitle>Login</CardTitle>
+          <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -124,7 +126,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="admin@example.com" {...field} />
+                      <Input type="email" placeholder="you@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -149,6 +151,15 @@ export default function LoginPage() {
             </form>
           </Form>
         </CardContent>
+         <CardFooter className="flex-col items-center gap-4">
+            <Separator />
+            <p className="text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Button variant="link" asChild className="p-0 h-auto">
+                   <Link href="/signup">Sign up</Link>
+                </Button>
+            </p>
+        </CardFooter>
       </Card>
     </div>
   );
