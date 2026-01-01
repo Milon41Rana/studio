@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { firebaseAdminConfig } from '@/firebase/firebase-admin-config';
 
