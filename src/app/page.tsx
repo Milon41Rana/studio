@@ -7,7 +7,7 @@ import { CategoryList } from '@/components/CategoryList';
 import { ProductCard } from '@/components/ProductCard';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs, writeBatch, doc } from 'firebase/firestore';
-import type { Product } from '@/lib/types';
+import type { Product, Category } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { products as dummyProducts, categories as dummyCategories } from '@/lib/dummyData';
 import { Button } from '@/components/ui/button';
@@ -25,12 +25,18 @@ function ProductGrid() {
     [firestore]
   );
   
-  const { data: products, isLoading } = useCollection<Product>(productsQuery);
+  const categoriesQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'categories')) : null),
+    [firestore]
+  );
+
+  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    if (products) {
+    if (products && categories) {
       let tempProducts = products;
 
       if (categoryFilter) {
@@ -38,14 +44,18 @@ function ProductGrid() {
       }
 
       if (searchTerm) {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        const categoryMap = new Map(categories.map(c => [c.id, c.name.toLowerCase()]));
+
         tempProducts = tempProducts.filter(p => 
-          p.title.toLowerCase().includes(searchTerm.toLowerCase())
+          p.title.toLowerCase().includes(lowerCaseSearchTerm) ||
+          (p.categoryId && (categoryMap.get(p.categoryId) || '').includes(lowerCaseSearchTerm))
         );
       }
       
       setFilteredProducts(tempProducts);
     }
-  }, [searchTerm, categoryFilter, products]);
+  }, [searchTerm, categoryFilter, products, categories]);
 
   // Seed database if it's empty
   const seedDatabase = async () => {
@@ -83,6 +93,8 @@ function ProductGrid() {
       console.error("Error seeding database: ", error);
     }
   };
+  
+  const isLoading = isLoadingProducts || isLoadingCategories;
 
   if (isLoading) {
     return (
