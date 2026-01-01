@@ -70,7 +70,7 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: '',
-      price: '' as any, // Fix: Changed from undefined to empty string
+      price: '' as any,
       imageUrl: '',
     },
   });
