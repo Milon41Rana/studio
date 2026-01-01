@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    unstable_allowDynamic: [
+      // This is to allow firebase-admin to be used in middleware.
+      '**/node_modules/firebase-admin/lib/firebase-namespace.js',
+    ],
+  },
   images: {
     remotePatterns: [
       {
