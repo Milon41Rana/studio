@@ -8,6 +8,18 @@ import { Star } from 'lucide-react';
 import { doc } from 'firebase/firestore';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import Head from 'next/head';
+
+
+export async function generateMetadata({ params: { id } }: { params: { id: string } }) {
+  // In a real app, you'd fetch this data from your database
+  // As we are in a client component, we cannot fetch server-side.
+  // This metadata generation will be handled differently in a real-world SSR setup.
+  // For now, we will add metadata via `next/head` in the component itself.
+  return {
+    title: 'Product',
+  };
+}
 
 const FALLBACK_IMAGE_URL = 'https://picsum.photos/seed/placeholder/600/600';
 
@@ -43,40 +55,63 @@ export default function ProductDetailPage({ params: { id } }: { params: { id: st
   }
 
   const imageUrl = product.imageUrl || FALLBACK_IMAGE_URL;
+  const productUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-        <div className="relative aspect-square rounded-lg overflow-hidden shadow-lg">
-          <Image
-            src={imageUrl}
-            alt={product.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            onError={(e) => {
-              e.currentTarget.srcset = FALLBACK_IMAGE_URL;
-              e.currentTarget.src = FALLBACK_IMAGE_URL;
-            }}
-          />
-        </div>
-        <div className="flex flex-col justify-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">{product.title}</h1>
-          <p className="text-2xl font-semibold text-primary mb-4">৳{product.price}</p>
-          <div className="flex items-center gap-1 mb-4">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className={`h-5 w-5 ${i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
-            ))}
-            <span className="text-muted-foreground ml-2">(123 reviews)</span>
+    <>
+    <Head>
+        <title>{product.title} - Super Shop</title>
+        <meta name="description" content={product.description} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={productUrl} />
+        <meta property="og:title" content={product.title} />
+        <meta property="og:description" content={product.description} />
+        <meta property="og:image" content={imageUrl} />
+        <meta property="og:price:amount" content={String(product.price)} />
+        <meta property="og:price:currency" content="BDT" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={productUrl} />
+        <meta property="twitter:title" content={product.title} />
+        <meta property="twitter:description" content={product.description} />
+        <meta property="twitter:image" content={imageUrl} />
+      </Head>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+          <div className="relative aspect-square rounded-lg overflow-hidden shadow-lg">
+            <Image
+              src={imageUrl}
+              alt={product.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              onError={(e) => {
+                e.currentTarget.srcset = FALLBACK_IMAGE_URL;
+                e.currentTarget.src = FALLBACK_IMAGE_URL;
+              }}
+            />
           </div>
-          <p className="text-muted-foreground mb-6">
-            {product.description}
-          </p>
-          <div className="w-full sm:w-auto">
-             <AddToCartButton product={product} />
+          <div className="flex flex-col justify-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">{product.title}</h1>
+            <p className="text-2xl font-semibold text-primary mb-4">৳{product.price}</p>
+            <div className="flex items-center gap-1 mb-4">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className={`h-5 w-5 ${i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+              ))}
+              <span className="text-muted-foreground ml-2">(123 reviews)</span>
+            </div>
+            <p className="text-muted-foreground mb-6">
+              {product.description}
+            </p>
+            <div className="w-full sm:w-auto">
+               <AddToCartButton product={product} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

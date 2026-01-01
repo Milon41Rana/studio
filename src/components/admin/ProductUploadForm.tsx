@@ -40,6 +40,16 @@ interface ProductUploadFormProps {
   onSubmit: (data: ProductFormData) => void;
 }
 
+// Helper to convert Google Drive link to a direct link
+const convertGoogleDriveLink = (url: string): string => {
+    const googleDriveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
+    const match = url.match(googleDriveRegex);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?id=${match[1]}`;
+    }
+    return url;
+};
+
 export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
   const firestore = useFirestore();
   const categoriesCollection = useMemoFirebase(
@@ -58,7 +68,11 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
   });
 
   function handleFormSubmit(data: ProductFormData) {
-    onSubmit(data);
+    const convertedData = {
+        ...data,
+        imageUrl: convertGoogleDriveLink(data.imageUrl),
+    };
+    onSubmit(convertedData);
     form.reset();
   }
 
@@ -129,7 +143,7 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
                 <Input placeholder="https://your-image-url.com/image.jpg" {...field} />
               </FormControl>
               <FormDescription>
-                Provide a direct link to the product image.
+                Provide a direct link (e.g., Google Drive, ImgBB). Google Drive links will be converted automatically.
               </FormDescription>
               <FormMessage />
             </FormItem>
