@@ -73,6 +73,7 @@ function AdminPage() {
   };
   
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       router.push('/');
