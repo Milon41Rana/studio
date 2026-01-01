@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Package } from 'lucide-react';
+import { Package, Search } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { SearchBar } from './SearchBar';
 
@@ -10,16 +10,16 @@ export function Header() {
   const isAdmin = user && user.email === 'ranamilon41@gmail.com';
 
   return (
-    <header className="hidden md:flex bg-card/80 backdrop-blur-sm sticky top-0 z-40 w-full border-b">
+    <header className="bg-card/80 backdrop-blur-sm sticky top-0 z-40 w-full border-b">
       <div className="container flex h-16 items-center">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg mr-6">
           <Package className="h-6 w-6 text-primary" />
-          <span className="font-headline">Super Shop</span>
+          <span className="font-headline hidden md:inline">Super Shop</span>
         </Link>
-        <div className="flex-1">
+        <div className="flex-1 md:flex-none md:w-auto">
           <SearchBar />
         </div>
-        <nav className="flex items-center space-x-6 text-sm font-medium ml-6">
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium ml-auto">
           <Link href="/" className="transition-colors hover:text-primary">Home</Link>
           <Link href="/cart" className="transition-colors hover:text-primary">Cart</Link>
           <Link href="/orders" className="transition-colors hover:text-primary">Orders</Link>
