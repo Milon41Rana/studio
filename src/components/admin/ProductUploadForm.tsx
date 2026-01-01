@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,7 +70,7 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: '',
-      price: undefined,
+      price: '' as any, // Fix: Changed from undefined to empty string
       imageUrl: '',
     },
   });
@@ -94,6 +95,10 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
 
     setImagePreview(URL.createObjectURL(file));
 
+    if (!storage) {
+        setFileError('Firebase Storage is not available. Please check your configuration.');
+        return;
+    }
     const timestamp = new Date().getTime();
     const uniqueFileName = `${timestamp}-${file.name}`;
     const fileRef = storageRef(storage, `products/${uniqueFileName}`);
