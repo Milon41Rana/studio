@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, ShoppingCart, Package, UserCog, LogOut } from 'lucide-react';
+import { Home, ShoppingCart, Package, UserCog, LogOut, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useAuth } from '@/firebase';
@@ -18,8 +18,11 @@ export function BottomNav() {
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const isAdmin = user && user.email === 'ranamilon41@gmail.com';
+  const isLoggedIn = user && !user.isAnonymous;
+
 
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       router.push('/');
@@ -52,21 +55,40 @@ export function BottomNav() {
           </Badge>
         )}
       </Link>
-      <Link href="/orders" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
-        <Package className="h-6 w-6" />
-        <span className="text-xs font-medium">Orders</span>
-      </Link>
-      {isAdmin && (
-        <>
-          <Link href="/admin" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
-            <UserCog className="h-6 w-6" />
-            <span className="text-xs font-medium">Admin</span>
+      
+      {isLoggedIn && !isAdmin && (
+        <Link href="/orders" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
+          <Package className="h-6 w-6" />
+          <span className="text-xs font-medium">Orders</span>
+        </Link>
+      )}
+
+      {isLoggedIn ? (
+        isAdmin ? (
+          <>
+            <Link href="/admin" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
+              <UserCog className="h-6 w-6" />
+              <span className="text-xs font-medium">Admin</span>
+            </Link>
+          </>
+        ) : (
+          <Link href="/login" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
+            <User className="h-6 w-6" />
+            <span className="text-xs font-medium">Profile</span>
           </Link>
-          <button onClick={handleLogout} className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
+        )
+      ) : (
+        <Link href="/login" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
+          <User className="h-6 w-6" />
+          <span className="text-xs font-medium">Login</span>
+        </Link>
+      )}
+
+      {isLoggedIn && (
+         <button onClick={handleLogout} className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
             <LogOut className="h-6 w-6" />
             <span className="text-xs font-medium">Logout</span>
           </button>
-        </>
       )}
     </nav>
   );
