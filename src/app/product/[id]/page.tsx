@@ -12,9 +12,8 @@ import Head from 'next/head';
 
 const FALLBACK_IMAGE_URL = 'https://picsum.photos/seed/placeholder/600/600';
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage({ params: { id } }: { params: { id: string } }) {
   const firestore = useFirestore();
-  const { id } = params;
 
   const productRef = useMemoFirebase(
     () => (firestore && id ? doc(firestore, 'products', id) : null),
