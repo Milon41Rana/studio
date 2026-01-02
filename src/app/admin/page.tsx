@@ -1,10 +1,11 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductUploadForm, type ProductFormData } from '@/components/admin/ProductUploadForm';
-import { OrderManagementTable } from '@/components/admin/OrderManagementTable';
+import { OrderManagementTable, type Order } from '@/components/admin/OrderManagementTable';
 import { useFirestore, useCollection, useMemoFirebase, useAuth } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -13,6 +14,7 @@ import withAdminAuth from '@/components/auth/withAdminAuth';
 import { Button } from '@/components/ui/button';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
 
 
 interface OrderItem {
@@ -21,15 +23,6 @@ interface OrderItem {
   price: number;
   title: string;
   imageUrl: string;
-}
-
-interface Order {
-  id: string;
-  userId: string;
-  orderDate: Timestamp;
-  totalAmount: number;
-  orderItems: OrderItem[];
-  status: string;
 }
 
 function AdminPage() {
@@ -47,6 +40,11 @@ function AdminPage() {
   );
 
   const { data: orders, isLoading: isLoadingOrders } = useCollection<Order>(allOrdersQuery);
+  
+  const pendingOrdersCount = useMemo(() => {
+    if (!orders) return 0;
+    return orders.filter(order => order.status === 'Pending').length;
+  }, [orders]);
 
 
   const handleAddProduct = (data: ProductFormData) => {
@@ -101,7 +99,14 @@ function AdminPage() {
       <Tabs defaultValue="products">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="products">Product Management</TabsTrigger>
-          <TabsTrigger value="orders">Order Management</TabsTrigger>
+          <TabsTrigger value="orders">
+            Order Management
+             {pendingOrdersCount > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {pendingOrdersCount}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="products" className="mt-6">
           <Card>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -8,6 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { OrderStatus } from '@/components/admin/OrderManagementTable';
 
 interface OrderItem {
   productId: string;
@@ -22,7 +25,7 @@ interface Order {
   orderDate: Timestamp;
   totalAmount: number;
   orderItems: OrderItem[];
-  status: string;
+  status: OrderStatus;
 }
 
 export default function OrdersPage() {
@@ -35,6 +38,19 @@ export default function OrdersPage() {
   );
   
   const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
+  
+  const getStatusVariant = (status: OrderStatus) => {
+    switch (status) {
+      case 'Pending':
+        return 'secondary';
+      case 'Processing':
+        return 'default';
+      case 'Delivered':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  };
 
   if (isUserLoading || (isLoading && !orders)) {
     return (
@@ -97,7 +113,9 @@ export default function OrdersPage() {
               ))}
             </CardContent>
             <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
-               <p><span className="font-semibold">Status:</span> {order.status}</p>
+              <Badge variant={getStatusVariant(order.status)}>
+                Status: {order.status}
+              </Badge>
                <p className="text-lg font-bold">Total: ৳{order.totalAmount.toFixed(2)}</p>
             </CardFooter>
           </Card>
