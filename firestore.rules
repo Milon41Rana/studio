@@ -1,3 +1,4 @@
+
 /**
  * # Firebase Security Rules
  *
@@ -24,8 +25,8 @@
  * - **Strict Ownership**: All data under `/users/{userId}` is accessible only to the
  *   authenticated user whose UID matches `{userId}`. This prevents users from
  *   viewing or modifying each other's profiles, orders, or other private data.
- * - **No User Listing**: The top-level `/users` collection cannot be listed, which
- *   prevents malicious actors from enumerating all application users.
+ * - **Admin User Listing**: Admins are allowed to list all users to manage customers,
+ *   but regular users are prevented from enumerating the user base.
  * - **Path-Based Authorization**: The rules heavily leverage the document path
  *   (e.g., `/users/{userId}/...`) to make authorization decisions. This avoids
  *   slow and costly `get()` calls to other documents, resulting in more performant
@@ -140,17 +141,18 @@ service cloud.firestore {
 
     /**
      * @description Manages user profile data. Users can create and manage their own
-     *              profile, but cannot view or edit others' profiles.
+     *              profile, but cannot view or edit others' profiles. Admins can list
+     *              all users for the customer management dashboard.
      * @path /users/{userId}
      * @allow (create) A new user can create their own user document if the doc ID matches their UID.
      * @allow (get, update) A user can read and update their own document.
-     * @deny (list) A user cannot list all other users in the system.
+     * @allow (list) Only an admin can list all users.
      * @deny (get) A user cannot read another user's profile document.
-     * @principle Enforces strict ownership and prevents user enumeration.
+     * @principle Enforces strict ownership and prevents user enumeration by non-admins.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false;
+      allow list: if isAdmin();
       allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
       allow update: if isExistingOwner(userId) && isUserIdImmutable();
       allow delete: if false;

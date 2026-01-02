@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductUploadForm, type ProductFormData } from '@/components/admin/ProductUploadForm';
 import { OrderManagementTable, type Order } from '@/components/admin/OrderManagementTable';
 import { ProductListTable, type Product } from '@/components/admin/ProductListTable';
+import { CustomerListTable, type UserProfile } from '@/components/admin/CustomerListTable';
 import { useFirestore, useCollection, useMemoFirebase, useAuth } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -47,9 +48,18 @@ function AdminPage() {
     },
     [firestore]
   );
+  
+  const allUsersQuery = useMemoFirebase(
+    () => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'users'), orderBy('firstName', 'asc'));
+    },
+    [firestore]
+  );
 
   const { data: orders, isLoading: isLoadingOrders } = useCollection<Order>(allOrdersQuery);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(allProductsQuery);
+  const { data: users, isLoading: isLoadingUsers } = useCollection<UserProfile>(allUsersQuery);
   
   const pendingOrdersCount = useMemo(() => {
     if (!orders) return 0;
@@ -103,7 +113,7 @@ function AdminPage() {
       </div>
 
       <Tabs defaultValue="products">
-        <TabsList className="grid w-full grid-cols-2 max-w-xl">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
           <TabsTrigger value="products">Product Management</TabsTrigger>
           <TabsTrigger value="orders">
             Order Management
@@ -113,6 +123,7 @@ function AdminPage() {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="customers">Customers</TabsTrigger>
         </TabsList>
         <TabsContent value="products" className="mt-6">
           <div className="grid gap-6 lg:grid-cols-3">
@@ -148,6 +159,17 @@ function AdminPage() {
             </CardHeader>
             <CardContent>
                <OrderManagementTable orders={orders || []} isLoading={isLoadingOrders} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="customers" className="mt-6">
+           <Card>
+            <CardHeader>
+              <CardTitle>Customer Accounts</CardTitle>
+              <CardDescription>View all registered users.</CardDescription>
+            </CardHeader>
+            <CardContent>
+               <CustomerListTable users={users || []} isLoading={isLoadingUsers} />
             </CardContent>
           </Card>
         </TabsContent>
