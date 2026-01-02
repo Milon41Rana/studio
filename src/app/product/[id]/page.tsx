@@ -10,17 +10,6 @@ import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import Head from 'next/head';
 
-
-export async function generateMetadata({ params: { id } }: { params: { id: string } }) {
-  // In a real app, you'd fetch this data from your database
-  // As we are in a client component, we cannot fetch server-side.
-  // This metadata generation will be handled differently in a real-world SSR setup.
-  // For now, we will add metadata via `next/head` in the component itself.
-  return {
-    title: 'Product',
-  };
-}
-
 const FALLBACK_IMAGE_URL = 'https://picsum.photos/seed/placeholder/600/600';
 
 export default function ProductDetailPage({ params: { id } }: { params: { id: string } }) {
