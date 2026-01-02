@@ -57,15 +57,23 @@ export function OrderManagementTable({ orders, isLoading }: OrderManagementTable
     if (!firestore || !order.id) return;
     setUpdatingStatus(prev => ({ ...prev, [order.id]: true }));
     
-    // There are two copies of the order, one in the top-level collection and one in the user's subcollection.
-    // We must update both.
     const topLevelOrderRef = doc(firestore, 'orders', order.id);
-    const userOrderRef = doc(firestore, 'users', order.userId, 'orders', order.id);
 
     try {
-      // It's not critical for these to be in a batch, but in a real-world scenario, you might use one.
+      // Update the top-level order document first.
       await updateDoc(topLevelOrderRef, { status: newStatus });
-      await updateDoc(userOrderRef, { status: newStatus });
+
+      // IMPORTANT: Only update the user-specific order if a userId exists on the order.
+      // This prevents errors for orders that might not have a corresponding user document.
+      if (order.userId) {
+        const userOrderRef = doc(firestore, 'users', order.userId, 'orders', order.id);
+        // This update is secondary. If it fails, the admin view is still correct.
+        // In a production app, you might use a Cloud Function for consistency.
+        await updateDoc(userOrderRef, { status: newStatus }).catch(userOrderError => {
+            console.warn(`Could not update user-specific order doc for user ${order.userId}:`, userOrderError);
+            // We don't throw an error here because the primary (admin) view is updated.
+        });
+      }
 
       toast({
         title: "Status Updated",
@@ -76,7 +84,7 @@ export function OrderManagementTable({ orders, isLoading }: OrderManagementTable
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Could not update the order status.",
+        description: "Could not update the order status in the main orders collection.",
       });
     } finally {
       setUpdatingStatus(prev => ({ ...prev, [order.id]: false }));
@@ -127,7 +135,7 @@ export function OrderManagementTable({ orders, isLoading }: OrderManagementTable
           <TableRow key={order.id}>
             <TableCell className="font-medium">{order.id.slice(0, 7)}...</TableCell>
             <TableCell>{new Date(order.orderDate.seconds * 1000).toLocaleDateString()}</TableCell>
-            <TableCell>{order.userId.slice(0,7)}...</TableCell>
+            <TableCell>{order.userId ? `${order.userId.slice(0,7)}...` : 'N/A'}</TableCell>
             <TableCell>৳{order.totalAmount.toFixed(2)}</TableCell>
             <TableCell>
               <Badge variant={getStatusVariant(order.status)}>
@@ -161,4 +169,3 @@ export function OrderManagementTable({ orders, isLoading }: OrderManagementTable
     </Table>
   );
 }
-
