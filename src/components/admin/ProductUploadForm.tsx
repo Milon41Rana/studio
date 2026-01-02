@@ -50,6 +50,7 @@ interface ProductUploadFormProps {
 
 const MAX_FILE_SIZE_MB = 2;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const UPLOAD_TIMEOUT_MS = 30000; // 30 seconds
 
 export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
   const firestore = useFirestore();
@@ -70,7 +71,8 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: '',
-      price: '' as any,
+      price: '',
+      category: '',
       imageUrl: '',
     },
   });
@@ -80,29 +82,42 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     if (!file) return;
 
     setFileError(null);
+    setImagePreview(null);
+    setUploadProgress(null);
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setFileError('Invalid file type. Please upload an image.');
       return;
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setFileError(`File is too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
       return;
     }
 
-    setImagePreview(URL.createObjectURL(file));
-
     if (!storage) {
-        setFileError('Firebase Storage is not available. Please check your configuration.');
+        setFileError('Firebase Storage is not available. Please check your configuration and try again.');
         return;
     }
+
+    setImagePreview(URL.createObjectURL(file));
+    
     const timestamp = new Date().getTime();
     const uniqueFileName = `${timestamp}-${file.name}`;
     const fileRef = storageRef(storage, `products/${uniqueFileName}`);
     const uploadTask = uploadBytesResumable(fileRef, file);
+
+    const timeoutId = setTimeout(() => {
+        uploadTask.cancel();
+        setFileError('Upload timed out. Please check your network and try again.');
+        setUploadProgress(null);
+        setImagePreview(null);
+         toast({
+          variant: 'destructive',
+          title: 'Upload Failed',
+          description: 'The upload took too long and was cancelled.',
+        });
+    }, UPLOAD_TIMEOUT_MS);
 
     uploadTask.on(
       'state_changed',
@@ -111,17 +126,27 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
         setUploadProgress(progress);
       },
       (error) => {
+        clearTimeout(timeoutId);
         console.error('Upload failed:', error);
-        setFileError('Image upload failed. Please try again.');
+        
+        let errorMessage = 'Image upload failed. Please try again.';
+        if (error.code === 'storage/retry-limit-exceeded') {
+            errorMessage = 'Upload failed: Connection timed out. Please check your network connection.'
+        } else if (error.code === 'storage/unauthorized') {
+            errorMessage = 'Upload failed: You do not have permission to upload files.';
+        }
+
+        setFileError(errorMessage);
         setUploadProgress(null);
         setImagePreview(null);
         toast({
           variant: 'destructive',
           title: 'Upload Failed',
-          description: 'There was an error uploading your image.',
+          description: errorMessage,
         });
       },
       () => {
+        clearTimeout(timeoutId);
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           form.setValue('imageUrl', downloadURL, { shouldValidate: true });
           setUploadProgress(null);
@@ -179,7 +204,7 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
               {isLoadingCategories ? (
                  <Skeleton className="h-10 w-full" />
               ) : (
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCategories}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingCategories}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a product category" />
@@ -199,7 +224,6 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
           )}
         />
         
-        {/* Image Upload Section */}
         <div className="space-y-2">
             <FormLabel>Product Image</FormLabel>
             <div className="flex items-center gap-4">
@@ -209,12 +233,13 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
                     accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
+                    disabled={uploadProgress !== null}
                 />
                 <label
                     htmlFor="file-upload"
                     className="flex-shrink-0 cursor-pointer"
                 >
-                    <Button type="button" variant="outline" asChild>
+                    <Button type="button" variant="outline" asChild disabled={uploadProgress !== null}>
                         <span><UploadCloud className="mr-2 h-4 w-4" /> Upload File</span>
                     </Button>
                 </label>
@@ -227,7 +252,6 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
              {fileError && <p className="text-sm font-medium text-destructive">{fileError}</p>}
         </div>
 
-        {/* Image Preview */}
         {imagePreview && (
           <div className="space-y-2">
             <FormLabel>Image Preview</FormLabel>
@@ -258,3 +282,5 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     </Form>
   );
 }
+
+    
