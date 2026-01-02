@@ -72,7 +72,7 @@ export function Header() {
             </>
           ) : (
              <Button asChild>
-                <Link href="/ourshop7862">Login</Link>
+                <Link href="/login">Login</Link>
             </Button>
           )}
         </nav>

@@ -185,7 +185,7 @@ export default function SignUpPage() {
             <p className="text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Button variant="link" asChild className="p-0 h-auto">
-                   <Link href="/ourshop7862">Log in</Link>
+                   <Link href="/login">Log in</Link>
                 </Button>
             </p>
         </CardFooter>
