@@ -50,7 +50,6 @@ interface ProductUploadFormProps {
 
 const MAX_FILE_SIZE_MB = 2;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const UPLOAD_TIMEOUT_MS = 30000; // 30 seconds
 
 export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
   const firestore = useFirestore();
@@ -71,7 +70,7 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: '',
-      price: '',
+      price: 0,
       category: '',
       imageUrl: '',
     },
@@ -107,18 +106,6 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     const fileRef = storageRef(storage, `products/${uniqueFileName}`);
     const uploadTask = uploadBytesResumable(fileRef, file);
 
-    const timeoutId = setTimeout(() => {
-        uploadTask.cancel();
-        setFileError('Upload timed out. Please check your network and try again.');
-        setUploadProgress(null);
-        setImagePreview(null);
-         toast({
-          variant: 'destructive',
-          title: 'Upload Failed',
-          description: 'The upload took too long and was cancelled.',
-        });
-    }, UPLOAD_TIMEOUT_MS);
-
     uploadTask.on(
       'state_changed',
       (snapshot) => {
@@ -126,14 +113,19 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
         setUploadProgress(progress);
       },
       (error) => {
-        clearTimeout(timeoutId);
         console.error('Upload failed:', error);
         
         let errorMessage = 'Image upload failed. Please try again.';
-        if (error.code === 'storage/retry-limit-exceeded') {
-            errorMessage = 'Upload failed: Connection timed out. Please check your network connection.'
-        } else if (error.code === 'storage/unauthorized') {
-            errorMessage = 'Upload failed: You do not have permission to upload files.';
+        switch (error.code) {
+            case 'storage/unauthorized':
+                errorMessage = 'Upload failed: You do not have permission to upload files.';
+                break;
+            case 'storage/canceled':
+                 errorMessage = 'Upload was canceled. Please try again.';
+                 break;
+            case 'storage/retry-limit-exceeded':
+                errorMessage = 'Upload failed: Connection timed out. Please check your network connection.';
+                break;
         }
 
         setFileError(errorMessage);
@@ -146,7 +138,6 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
         });
       },
       () => {
-        clearTimeout(timeoutId);
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           form.setValue('imageUrl', downloadURL, { shouldValidate: true });
           setUploadProgress(null);
