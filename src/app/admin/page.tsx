@@ -6,15 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductUploadForm, type ProductFormData } from '@/components/admin/ProductUploadForm';
 import { OrderManagementTable, type Order } from '@/components/admin/OrderManagementTable';
+import { ProductListTable, type Product } from '@/components/admin/ProductListTable';
 import { useFirestore, useCollection, useMemoFirebase, useAuth } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { useToast } from '@/hooks/use-toast';
 import withAdminAuth from '@/components/auth/withAdminAuth';
 import { Button } from '@/components/ui/button';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface OrderItem {
@@ -38,8 +39,17 @@ function AdminPage() {
     },
     [firestore]
   );
+  
+  const allProductsQuery = useMemoFirebase(
+    () => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'products'), orderBy('title', 'asc'));
+    },
+    [firestore]
+  );
 
   const { data: orders, isLoading: isLoadingOrders } = useCollection<Order>(allOrdersQuery);
+  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(allProductsQuery);
   
   const pendingOrdersCount = useMemo(() => {
     if (!orders) return 0;
@@ -59,15 +69,11 @@ function AdminPage() {
       price: data.price,
       categoryId: data.category,
       imageUrl: data.imageUrl,
-      imageHint: 'custom product'
+      imageHint: 'custom product',
+      isActive: true, // Default to active
     };
     
     setDocumentNonBlocking(newDocRef, productData);
-
-    toast({
-      title: 'Product Added!',
-      description: `${data.name} has been added to the store.`,
-    });
   };
   
   const handleLogout = async () => {
@@ -97,7 +103,7 @@ function AdminPage() {
       </div>
 
       <Tabs defaultValue="products">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-2 max-w-xl">
           <TabsTrigger value="products">Product Management</TabsTrigger>
           <TabsTrigger value="orders">
             Order Management
@@ -109,15 +115,30 @@ function AdminPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="products" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Add New Product</CardTitle>
-              <CardDescription>Fill out the form below to add a new product to your store.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ProductUploadForm onSubmit={handleAddProduct} />
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                 <Card>
+                    <CardHeader>
+                      <CardTitle>Add New Product</CardTitle>
+                      <CardDescription>Fill out the form to add a product.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ProductUploadForm onSubmit={handleAddProduct} />
+                    </CardContent>
+                  </Card>
+              </div>
+               <div className="lg:col-span-2">
+                <Card>
+                    <CardHeader>
+                      <CardTitle>Product List</CardTitle>
+                      <CardDescription>Manage product status and details.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <ProductListTable products={products || []} isLoading={isLoadingProducts} />
+                    </CardContent>
+                  </Card>
+              </div>
+          </div>
         </TabsContent>
         <TabsContent value="orders" className="mt-6">
            <Card>

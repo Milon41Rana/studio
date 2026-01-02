@@ -8,6 +8,7 @@ import type { Product } from '@/lib/types';
 import { Plus } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface ProductCardProps {
   product: Product;
@@ -20,6 +21,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast();
 
   const handleAddToCart = () => {
+    if (!product.isActive) return;
     addToCart(product);
     toast({
       title: 'Added to cart',
@@ -28,21 +30,22 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const imageUrl = product.imageUrl || FALLBACK_IMAGE_URL;
+  const isInactive = !product.isActive;
 
   return (
     <Card className="flex flex-col overflow-hidden h-full shadow-md hover:shadow-xl transition-shadow duration-300 group">
       <Link href={`/product/${product.id}`} className="flex flex-col h-full">
         <div className="relative aspect-square w-full overflow-hidden">
+          {isInactive && (
+             <Badge variant="destructive" className="absolute top-2 left-2 z-10">Stock Out</Badge>
+          )}
           <Image
             src={imageUrl}
             alt={product.title}
             fill
             sizes="(max-width: 768px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`object-cover group-hover:scale-105 transition-transform duration-300 ${isInactive ? 'grayscale' : ''}`}
             onError={(e) => {
-              // In case of an error loading the primary image, switch to the fallback.
-              // Note: This requires direct DOM manipulation, which is a slight escape hatch
-              // from typical React patterns but is effective for this specific use case.
               e.currentTarget.srcset = FALLBACK_IMAGE_URL;
               e.currentTarget.src = FALLBACK_IMAGE_URL;
             }}
@@ -57,8 +60,10 @@ export function ProductCard({ product }: ProductCardProps) {
         <Button 
           className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
           onClick={handleAddToCart}
+          disabled={isInactive}
         >
-          <Plus className="mr-2 h-4 w-4" /> Add to Cart
+          <Plus className="mr-2 h-4 w-4" /> 
+          {isInactive ? 'Unavailable' : 'Add to Cart'}
         </Button>
       </CardFooter>
     </Card>

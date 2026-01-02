@@ -30,6 +30,10 @@
         "categoryId": {
           "type": "string",
           "description": "Reference to Category. (Relationship: Category 1:N Product)"
+        },
+        "isActive": {
+            "type": "boolean",
+            "description": "Controls whether the product is visible and purchasable in the store."
         }
       },
       "required": [
@@ -38,7 +42,8 @@
         "description",
         "imageUrl",
         "price",
-        "categoryId"
+        "categoryId",
+        "isActive"
       ]
     },
     "Category": {

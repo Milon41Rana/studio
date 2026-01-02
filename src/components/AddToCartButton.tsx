@@ -13,8 +13,10 @@ interface AddToCartButtonProps {
 export function AddToCartButton({ product }: AddToCartButtonProps) {
     const { addToCart } = useCart();
     const { toast } = useToast();
+    const isInactive = !product.isActive;
 
     const handleAddToCart = () => {
+        if (isInactive) return;
         addToCart(product);
         toast({
             title: 'Added to cart',
@@ -23,9 +25,9 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
     };
     
     return (
-        <Button size="lg" onClick={handleAddToCart}>
+        <Button size="lg" onClick={handleAddToCart} disabled={isInactive}>
             <ShoppingCart className="mr-2 h-5 w-5" />
-            Add to Cart
+            {isInactive ? 'Currently Unavailable' : 'Add to Cart'}
         </Button>
     )
 }

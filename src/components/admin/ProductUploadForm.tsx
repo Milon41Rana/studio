@@ -164,6 +164,10 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     form.reset();
     setImagePreview(null);
     setFileError(null);
+    toast({
+      title: 'Product Added!',
+      description: `${data.name} has been added to the store.`,
+    });
   }
 
   return (

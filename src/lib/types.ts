@@ -6,6 +6,7 @@ export interface Product {
   categoryId: string;
   imageUrl: string;
   imageHint: string;
+  isActive: boolean;
 }
 
 export interface Category {

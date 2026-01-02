@@ -23,14 +23,14 @@ export const categories: Category[] = [
 ];
 
 export const products: (Omit<Product, 'description' | 'title'> & {name: string})[] = [
-  { id: '1', name: 'Basmati Rice 5kg', price: 750, categoryId: 'grocery', ...findImage('product-rice') },
-  { id: '2', name: 'Soybean Oil 5L', price: 820, categoryId: 'grocery', ...findImage('product-oil') },
-  { id: '3', name: 'Wireless Earbuds Pro', price: 3500, categoryId: 'electronics', ...findImage('product-earbuds') },
-  { id: '4', name: 'Classic Cotton T-Shirt', price: 550, categoryId: 'fashion', ...findImage('product-shirt') },
-  { id: '5', name: 'Slim-Fit Denim Jeans', price: 1800, categoryId: 'fashion', ...findImage('product-jeans') },
-  { id: '6', name: 'Red Lentils (Masoor Dal) 1kg', price: 140, categoryId: 'grocery', ...findImage('product-lentils') },
-  { id: '7', name: 'Mechanical Gaming Keyboard', price: 4200, categoryId: 'electronics', ...findImage('product-keyboard') },
-  { id: '8', name: 'Ergonomic Wireless Mouse', price: 1200, categoryId: 'electronics', ...findImage('product-mouse') },
-  { id: '9', name: 'Running Sport Shoes', price: 2500, categoryId: 'fashion', ...findImage('product-shoes') },
-  { id: '10', name: 'Fitness Tracker Smart Watch', price: 4800, categoryId: 'electronics', ...findImage('product-watch') },
+  { id: '1', name: 'Basmati Rice 5kg', price: 750, categoryId: 'grocery', ...findImage('product-rice'), isActive: true },
+  { id: '2', name: 'Soybean Oil 5L', price: 820, categoryId: 'grocery', ...findImage('product-oil'), isActive: true },
+  { id: '3', name: 'Wireless Earbuds Pro', price: 3500, categoryId: 'electronics', ...findImage('product-earbuds'), isActive: true },
+  { id: '4', name: 'Classic Cotton T-Shirt', price: 550, categoryId: 'fashion', ...findImage('product-shirt'), isActive: true },
+  { id: '5', name: 'Slim-Fit Denim Jeans', price: 1800, categoryId: 'fashion', ...findImage('product-jeans'), isActive: true },
+  { id: '6', name: 'Red Lentils (Masoor Dal) 1kg', price: 140, categoryId: 'grocery', ...findImage('product-lentils'), isActive: true },
+  { id: '7', name: 'Mechanical Gaming Keyboard', price: 4200, categoryId: 'electronics', ...findImage('product-keyboard'), isActive: true },
+  { id: '8', name: 'Ergonomic Wireless Mouse', price: 1200, categoryId: 'electronics', ...findImage('product-mouse'), isActive: true },
+  { id: '9', name: 'Running Sport Shoes', price: 2500, categoryId: 'fashion', ...findImage('product-shoes'), isActive: true },
+  { id: '10', name: 'Fitness Tracker Smart Watch', price: 4800, categoryId: 'electronics', ...findImage('product-watch'), isActive: true },
 ];
