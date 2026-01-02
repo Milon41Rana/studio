@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -12,16 +13,25 @@ import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useRouter } from 'next/navigation';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
+  const router = useRouter();
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  const isLoggedIn = user && !user.isAnonymous;
+
   const handlePlaceOrder = () => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+
     if (cart.length === 0) {
       toast({
         variant: 'destructive',
@@ -140,10 +150,15 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>৳{totalPrice.toFixed(2)}</span>
               </div>
+               {!isLoggedIn && (
+                <div className="text-center text-sm text-muted-foreground pt-2">
+                  Please <Button variant="link" className="p-0 h-auto" asChild><Link href="/login">log in</Link></Button> to place an order.
+                </div>
+              )}
             </CardContent>
             <CardFooter>
               <Button className="w-full" onClick={handlePlaceOrder}>
-                Place Order (Cash on Delivery)
+                 {isLoggedIn ? 'Place Order (Cash on Delivery)' : 'Login to Order'}
               </Button>
             </CardFooter>
           </Card>
