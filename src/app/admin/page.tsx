@@ -65,8 +65,8 @@ function AdminPage() {
     setDocumentNonBlocking(newDocRef, productData);
 
     toast({
-      title: 'Product Submitted',
-      description: `${data.name} is being added to the database.`,
+      title: 'Product Added!',
+      description: `${data.name} has been added to the store.`,
     });
   };
   

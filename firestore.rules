@@ -112,7 +112,7 @@ service cloud.firestore {
      * @description Anyone can view products, but only admins should write them.
      * @path /products/{productId}
      * @allow (get, list) An anonymous user can view all products to browse the store.
-     * @deny (create, update, delete) A signed-in user cannot create or modify a product.
+     * @allow (create, update, delete) Only an admin can manage products.
      * @principle Public read access for global data, with writes locked down to admin.
      */
     match /products/{productId} {
@@ -124,7 +124,7 @@ service cloud.firestore {
      * @description Anyone can view categories, but only admins should write them.
      * @path /categories/{categoryId}
      * @allow (get, list) An anonymous user can view all categories to filter products.
-     * @deny (create, update, delete) A signed-in user cannot create a new category.
+     * @allow (create, update, delete) Only an admin can manage categories.
      * @principle Public read access for global data, with writes locked down to admin.
      */
     match /categories/{categoryId} {
@@ -177,7 +177,7 @@ service cloud.firestore {
     match /users/{userId}/orders/{orderId} {
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && hasCorrectOrderOwnerOnCreate(userId);
-      allow update: if isExistingOwner(userId) && isOrderOwnerImmutable();
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isExistingOwner(userId);
 
       /**

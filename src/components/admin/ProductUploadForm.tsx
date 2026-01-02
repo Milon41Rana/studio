@@ -282,5 +282,3 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     </Form>
   );
 }
-
-    
