@@ -57,43 +57,6 @@ function ProductGrid() {
     }
   }, [searchTerm, categoryFilter, products, categories]);
 
-  // Seed database if it's empty
-  const seedDatabase = async () => {
-    if (!firestore) return;
-    try {
-      const productsCollection = collection(firestore, 'products');
-      const productsSnapshot = await getDocs(query(productsCollection));
-      if (productsSnapshot.empty) {
-        const batch = writeBatch(firestore);
-        dummyProducts.forEach((product) => {
-          const { id, name, ...rest } = product;
-          const docRef = doc(productsCollection, id);
-          batch.set(docRef, { title: name, description: `Description for ${name}`, ...rest });
-        });
-        await batch.commit();
-        console.log('Products seeded!');
-      }
-
-      const categoriesCollection = collection(firestore, 'categories');
-      const categoriesSnapshot = await getDocs(query(categoriesCollection));
-      if (categoriesSnapshot.empty) {
-        const batch = writeBatch(firestore);
-        dummyCategories.forEach((category) => {
-            const { id, ...rest } = category;
-            const docRef = doc(categoriesCollection, id);
-            batch.set(docRef, rest);
-        });
-        await batch.commit();
-        console.log('Categories seeded!');
-      }
-      
-      window.location.reload();
-
-    } catch (error) {
-      console.error("Error seeding database: ", error);
-    }
-  };
-  
   const isLoading = isLoadingProducts || isLoadingCategories;
 
   if (isLoading) {
@@ -109,8 +72,8 @@ function ProductGrid() {
   if (!isLoading && (!products || products.length === 0)) {
       return (
           <div className="text-center py-12">
-              <p className="mb-4">Your database is currently empty.</p>
-              <Button onClick={seedDatabase}>Seed Initial Data</Button>
+              <h3 className="text-xl font-semibold mb-2">No Products Available</h3>
+              <p className="text-muted-foreground">Please check back later or contact support if you believe this is an error.</p>
           </div>
       );
   }
