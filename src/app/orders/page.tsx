@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { OrderStatus } from '@/components/admin/OrderManagementTable';
+import { Printer } from 'lucide-react';
+import { generateInvoiceHTML } from '@/lib/invoice';
 
 interface OrderItem {
   productId: string;
@@ -52,6 +54,17 @@ export default function OrdersPage() {
     }
   };
 
+  const handlePrintInvoice = (order: Order) => {
+    if (typeof window !== 'undefined') {
+      const invoiceHtml = generateInvoiceHTML(order, user?.displayName || 'N/A');
+      const newWindow = window.open();
+      newWindow?.document.write(invoiceHtml);
+      newWindow?.document.close();
+      newWindow?.print();
+    }
+  };
+
+
   if (isUserLoading || (isLoading && !orders)) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -92,11 +105,17 @@ export default function OrdersPage() {
       <div className="space-y-6">
         {orders.map((order) => (
           <Card key={order.id}>
-            <CardHeader>
-              <CardTitle>Order #{order.id.slice(0, 7)}</CardTitle>
-              <CardDescription>
-                Placed on: {new Date(order.orderDate.seconds * 1000).toLocaleDateString()}
-              </CardDescription>
+            <CardHeader className="flex flex-row justify-between items-start">
+              <div>
+                <CardTitle>Order #{order.id.slice(0, 7)}</CardTitle>
+                <CardDescription>
+                  Placed on: {new Date(order.orderDate.seconds * 1000).toLocaleDateString()}
+                </CardDescription>
+              </div>
+               <Button variant="outline" size="sm" onClick={() => handlePrintInvoice(order)}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print Invoice
+                </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {order.orderItems.map((item, index) => (

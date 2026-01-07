@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
@@ -6,7 +7,7 @@ import { FlashSaleBanner } from '@/components/FlashSaleBanner';
 import { CategoryList } from '@/components/CategoryList';
 import { ProductCard } from '@/components/ProductCard';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, getDocs, writeBatch, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, writeBatch, doc } from 'firebase/firestore';
 import type { Product, Category } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { products as dummyProducts, categories as dummyCategories } from '@/lib/dummyData';
@@ -17,45 +18,51 @@ function ProductGrid() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const searchTerm = searchParams.get('q') || '';
+  const searchTerm = searchParams.get('q')?.toLowerCase() || '';
   const categoryFilter = searchParams.get('category') || '';
 
-  const productsQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'products'), orderBy('title')) : null),
-    [firestore]
-  );
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    let q = collection(firestore, 'products');
+    
+    // Start with a base query ordered by title
+    let finalQuery: Query = query(q, orderBy('title'));
+
+    return finalQuery;
+  }, [firestore]);
   
   const categoriesQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'categories')) : null),
     [firestore]
   );
 
-  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+  const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
   const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    if (products && categories) {
-      let tempProducts = products;
+    if (allProducts && categories) {
+      let tempProducts = allProducts;
 
+      // 1. Filter by category first
       if (categoryFilter) {
         tempProducts = tempProducts.filter(p => p.categoryId === categoryFilter);
       }
 
+      // 2. Then, filter by search term on the result of the category filter
       if (searchTerm) {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
         const categoryMap = new Map(categories.map(c => [c.id, c.name.toLowerCase()]));
 
         tempProducts = tempProducts.filter(p => 
-          p.title.toLowerCase().includes(lowerCaseSearchTerm) ||
-          (p.categoryId && (categoryMap.get(p.categoryId) || '').includes(lowerCaseSearchTerm))
+          p.title.toLowerCase().includes(searchTerm) ||
+          (p.categoryId && (categoryMap.get(p.categoryId) || '').includes(searchTerm))
         );
       }
       
       setFilteredProducts(tempProducts);
     }
-  }, [searchTerm, categoryFilter, products, categories]);
+  }, [searchTerm, categoryFilter, allProducts, categories]);
 
   const isLoading = isLoadingProducts || isLoadingCategories;
 
@@ -69,7 +76,7 @@ function ProductGrid() {
     );
   }
 
-  if (!isLoading && (!products || products.length === 0)) {
+  if (!isLoading && (!allProducts || allProducts.length === 0)) {
       return (
           <div className="text-center py-12">
               <h3 className="text-xl font-semibold mb-2">No Products Available</h3>
@@ -78,11 +85,19 @@ function ProductGrid() {
       );
   }
 
-  if (filteredProducts.length === 0 && (searchTerm || categoryFilter)) {
+  if (filteredProducts.length === 0) {
+    let message = "No Products Found";
+    let subMessage = "Try adjusting your search or filter.";
+
+    if(categoryFilter && !searchTerm) {
+      message = "No Products in This Category Yet";
+      subMessage = "Please check back later. New items are being added!";
+    }
+
     return (
       <div className="text-center py-12">
-        <h3 className="text-xl font-semibold mb-2">No Products Found</h3>
-        <p className="text-muted-foreground mb-4">Try adjusting your search or filter.</p>
+        <h3 className="text-xl font-semibold mb-2">{message}</h3>
+        <p className="text-muted-foreground mb-4">{subMessage}</p>
         <Button onClick={() => router.push('/')}>Clear Filters</Button>
       </div>
     );
