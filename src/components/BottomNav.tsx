@@ -65,18 +65,11 @@ export function BottomNav() {
 
       {isLoggedIn ? (
         isAdmin ? (
-          <>
-            <Link href="/admin" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
-              <UserCog className="h-6 w-6" />
-              <span className="text-xs font-medium">Admin</span>
-            </Link>
-          </>
-        ) : (
-          <Link href="/login" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
-            <User className="h-6 w-6" />
-            <span className="text-xs font-medium">Profile</span>
+          <Link href="/admin" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
+            <UserCog className="h-6 w-6" />
+            <span className="text-xs font-medium">Admin</span>
           </Link>
-        )
+        ) : null
       ) : (
         <Link href="/login" className="flex flex-col items-center text-muted-foreground hover:text-primary transition-colors p-2">
           <User className="h-6 w-6" />
