@@ -3,20 +3,22 @@
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
-import type { Product } from '@/lib/types';
+import { Product } from '@/lib/types';
 import { ShoppingCart } from 'lucide-react';
 
 interface AddToCartButtonProps {
-    product: Product;
+    product: Product & { price: number }; // Ensure price is always present
 }
 
 export function AddToCartButton({ product }: AddToCartButtonProps) {
     const { addToCart } = useCart();
     const { toast } = useToast();
-    const isInactive = !product.isActive;
+    
+    const isOutOfStock = product.stockQuantity <= 0;
+    const isButtonDisabled = !product.isActive || isOutOfStock;
 
     const handleAddToCart = () => {
-        if (isInactive) return;
+        if (isButtonDisabled) return;
         addToCart(product);
         toast({
             title: 'Added to cart',
@@ -25,9 +27,9 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
     };
     
     return (
-        <Button size="lg" onClick={handleAddToCart} disabled={isInactive}>
+        <Button size="lg" onClick={handleAddToCart} disabled={isButtonDisabled}>
             <ShoppingCart className="mr-2 h-5 w-5" />
-            {isInactive ? 'Currently Unavailable' : 'Add to Cart'}
+            {isOutOfStock ? 'Out of Stock' : (product.isActive ? 'Add to Cart' : 'Currently Unavailable')}
         </Button>
     )
 }

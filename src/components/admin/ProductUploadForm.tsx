@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useCollection, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import type { Category } from '@/lib/types';
 import { collection } from 'firebase/firestore';
@@ -32,14 +33,17 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebas
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { UploadCloud } from 'lucide-react';
 
 const productFormSchema = z.object({
   name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
-  price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
+  description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
+  regularPrice: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
+  salePrice: z.coerce.number().optional(),
+  stockQuantity: z.coerce.number().min(0, { message: 'Stock cannot be negative.' }),
   category: z.string({ required_error: 'Please select a category.' }),
-  imageUrl: z.string().url({ message: 'Please enter a valid URL.' }),
+  imageUrl: z.string().url({ message: 'Please upload an image or enter a valid URL.' }),
+  variants: z.string().optional(),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
@@ -70,9 +74,13 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: '',
-      price: 0,
+      description: '',
+      regularPrice: 0,
+      salePrice: undefined,
+      stockQuantity: 0,
       category: '',
       imageUrl: '',
+      variants: '',
     },
   });
 
@@ -177,19 +185,64 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
-          name="price"
+          name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price (৳)</FormLabel>
+              <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="e.g. 550" {...field} />
+                <Textarea placeholder="Describe the product in detail..." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="regularPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Regular Price (৳)</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="e.g. 550" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
+            control={form.control}
+            name="salePrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sale Price (৳) (Optional)</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="e.g. 499" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+            control={form.control}
+            name="stockQuantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stock Quantity</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="e.g. 100" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
         <FormField
           control={form.control}
           name="category"
@@ -214,6 +267,23 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
                   </SelectContent>
                 </Select>
               )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="variants"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Variants</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. S, M, L, XL" {...field} />
+              </FormControl>
+              <FormDescription>
+                Comma-separated values (e.g., Red, Green, Blue).
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

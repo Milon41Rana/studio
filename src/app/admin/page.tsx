@@ -75,8 +75,11 @@ function AdminPage() {
     const productData = {
       id: newDocRef.id,
       title: data.name,
-      description: 'A default product description.',
-      price: data.price,
+      description: data.description,
+      regularPrice: data.regularPrice,
+      salePrice: data.salePrice,
+      stockQuantity: data.stockQuantity,
+      variants: data.variants,
       categoryId: data.category,
       imageUrl: data.imageUrl,
       imageHint: 'custom product',

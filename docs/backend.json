@@ -23,9 +23,21 @@
           "description": "URL of the product image.",
           "format": "uri"
         },
-        "price": {
+        "regularPrice": {
           "type": "number",
-          "description": "The price of the product."
+          "description": "The regular (original) price of the product."
+        },
+        "salePrice": {
+          "type": "number",
+          "description": "The discounted (sale) price of the product. Optional."
+        },
+        "stockQuantity": {
+          "type": "number",
+          "description": "The available quantity of the product in stock."
+        },
+        "variants": {
+          "type": "string",
+          "description": "Comma-separated list of product variants (e.g., 'S, M, L' or 'Red, Green, Blue')."
         },
         "categoryId": {
           "type": "string",
@@ -41,7 +53,8 @@
         "title",
         "description",
         "imageUrl",
-        "price",
+        "regularPrice",
+        "stockQuantity",
         "categoryId",
         "isActive"
       ]

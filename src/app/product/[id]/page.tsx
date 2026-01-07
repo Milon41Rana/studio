@@ -1,13 +1,15 @@
 'use client';
 
+import React from 'react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
-import { Star } from 'lucide-react';
+import { Star, Package, ShieldCheck, Truck } from 'lucide-react';
 import { doc } from 'firebase/firestore';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import Head from 'next/head';
 
 const FALLBACK_IMAGE_URL = 'https://picsum.photos/seed/placeholder/600/600';
@@ -42,6 +44,9 @@ export default function ProductDetailPage({ params: { id } }: { params: { id: st
   if (!product) {
     notFound();
   }
+  
+  const displayPrice = product.salePrice ?? product.regularPrice;
+  const productWithPrice = { ...product, price: displayPrice };
 
   const imageUrl = product.imageUrl || FALLBACK_IMAGE_URL;
   const productUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -58,7 +63,7 @@ export default function ProductDetailPage({ params: { id } }: { params: { id: st
         <meta property="og:title" content={product.title} />
         <meta property="og:description" content={product.description} />
         <meta property="og:image" content={imageUrl} />
-        <meta property="og:price:amount" content={String(product.price)} />
+        <meta property="og:price:amount" content={String(displayPrice)} />
         <meta property="og:price:currency" content="BDT" />
 
         {/* Twitter */}
@@ -82,10 +87,22 @@ export default function ProductDetailPage({ params: { id } }: { params: { id: st
                 e.currentTarget.src = FALLBACK_IMAGE_URL;
               }}
             />
+             {product.stockQuantity <= 0 && (
+                <Badge variant="destructive" className="absolute top-4 left-4 z-10 text-lg p-2">Stock Out</Badge>
+            )}
           </div>
           <div className="flex flex-col justify-center">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">{product.title}</h1>
-            <p className="text-2xl font-semibold text-primary mb-4">৳{product.price}</p>
+            <div className="flex items-baseline gap-3 mb-4">
+                {product.salePrice && product.salePrice < product.regularPrice ? (
+                <>
+                    <p className="text-3xl font-semibold text-primary">৳{product.salePrice}</p>
+                    <p className="text-xl text-muted-foreground line-through">৳{product.regularPrice}</p>
+                </>
+                ) : (
+                <p className="text-3xl font-semibold text-foreground">৳{product.regularPrice}</p>
+                )}
+            </div>
             <div className="flex items-center gap-1 mb-4">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className={`h-5 w-5 ${i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
@@ -95,9 +112,28 @@ export default function ProductDetailPage({ params: { id } }: { params: { id: st
             <p className="text-muted-foreground mb-6">
               {product.description}
             </p>
-            <div className="w-full sm:w-auto">
-               <AddToCartButton product={product} />
+
+            {product.variants && (
+                <div className="mb-6">
+                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Available Variants</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {product.variants.split(',').map(v => v.trim()).map(variant => (
+                            <Badge key={variant} variant="outline" className="px-3 py-1 text-base">{variant}</Badge>
+                        ))}
+                    </div>
+                </div>
+            )}
+            
+            <div className="w-full sm:w-auto mb-6">
+               <AddToCartButton product={productWithPrice} />
             </div>
+
+            <div className="flex flex-col gap-3 text-sm text-muted-foreground border-t pt-4">
+                <div className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> <span>In Stock: {product.stockQuantity > 0 ? `${product.stockQuantity} units` : 'Out of Stock'}</span></div>
+                <div className="flex items-center gap-2"><Truck className="h-5 w-5 text-primary" /> <span>Fast Delivery Available</span></div>
+                <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-primary" /> <span>100% Genuine Product</span></div>
+            </div>
+
           </div>
         </div>
       </div>

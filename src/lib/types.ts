@@ -2,7 +2,10 @@ export interface Product {
   id: string;
   title: string;
   description: string;
-  price: number;
+  regularPrice: number;
+  salePrice?: number;
+  stockQuantity: number;
+  variants?: string;
   categoryId: string;
   imageUrl: string;
   imageHint: string;
