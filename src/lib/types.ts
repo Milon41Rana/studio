@@ -1,11 +1,12 @@
+
 export interface Product {
   id: string;
   title: string;
   description: string;
   regularPrice: number;
-  salePrice?: number;
+  salePrice?: number | null;
   stockQuantity: number;
-  variants?: string;
+  variants?: string | null;
   categoryId: string;
   imageUrl: string;
   imageHint: string;

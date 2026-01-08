@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -6,6 +7,7 @@ import { useUser, useAuth, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
+import { sanitizeProductForFirebase } from '@/lib/sanitize';
 
 
 export interface CartItem extends Product {
@@ -74,15 +76,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToCart = (product: Product) => {
+    const sanitizedProduct = sanitizeProductForFirebase(product);
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      const existingItem = prevCart.find((item) => item.id === sanitizedProduct.id);
       let newCart;
       if (existingItem) {
         newCart = prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === sanitizedProduct.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
-        newCart = [...prevCart, { ...product, quantity: 1 }];
+        newCart = [...prevCart, { ...sanitizedProduct, quantity: 1 }];
       }
       updateFirestoreCart(newCart);
       return newCart;

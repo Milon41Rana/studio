@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Product } from '@/lib/types';
 import { ShoppingCart } from 'lucide-react';
 
 interface AddToCartButtonProps {
-    product: Product & { price: number }; // Ensure price is always present
+    product: Omit<Product, 'salePrice' | 'variants'> & { salePrice?: number | null, variants?: string | null, price: number };
 }
 
 export function AddToCartButton({ product }: AddToCartButtonProps) {
