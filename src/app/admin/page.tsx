@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductUploadForm, type ProductFormData } from '@/components/admin/ProductUploadForm';
@@ -17,6 +17,10 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { generateProductIdea, type GenerateProductIdeaOutput } from '@/ai/flows/generate-product-idea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 
 interface OrderItem {
@@ -32,6 +36,9 @@ function AdminPage() {
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+  const [idea, setIdea] = useState<GenerateProductIdeaOutput | null>(null);
+  const [ideaCategory, setIdeaCategory] = useState<string>('');
 
   const allOrdersQuery = useMemoFirebase(
     () => {
@@ -57,15 +64,36 @@ function AdminPage() {
     [firestore]
   );
 
+  const categoriesQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'categories')) : null),
+    [firestore]
+  );
+
   const { data: orders, isLoading: isLoadingOrders } = useCollection<Order>(allOrdersQuery);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(allProductsQuery);
   const { data: users, isLoading: isLoadingUsers } = useCollection<UserProfile>(allUsersQuery);
+  const { data: categories, isLoading: isLoadingCategories } = useCollection(categoriesQuery);
   
   const pendingOrdersCount = useMemo(() => {
     if (!orders) return 0;
     return orders.filter(order => order.status === 'Pending').length;
   }, [orders]);
 
+  const handleGenerateIdea = () => {
+    if (!ideaCategory) {
+      toast({
+        variant: 'destructive',
+        title: 'Category not selected',
+        description: 'Please select a category to generate an idea.',
+      });
+      return;
+    }
+    startTransition(async () => {
+      setIdea(null);
+      const result = await generateProductIdea({ category: ideaCategory });
+      setIdea(result);
+    });
+  };
 
   const handleAddProduct = (data: ProductFormData) => {
     if (!firestore) return;
@@ -130,14 +158,50 @@ function AdminPage() {
         </TabsList>
         <TabsContent value="products" className="mt-6">
           <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-1">
+            <div className="lg:col-span-1 flex flex-col gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="text-primary" />
+                      AI Product Idea Generator
+                    </CardTitle>
+                    <CardDescription>Stuck for ideas? Let AI suggest a new product for your store.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="idea-category">Select Category</Label>
+                      <Select onValueChange={setIdeaCategory} value={ideaCategory} disabled={isPending || isLoadingCategories}>
+                          <SelectTrigger id="idea-category">
+                              <SelectValue placeholder="Choose a category..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                              {categories?.map((cat: any) => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                          </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={handleGenerateIdea} disabled={isPending || !ideaCategory} className="w-full">
+                      {isPending ? <Loader2 className="animate-spin" /> : 'Generate Idea'}
+                    </Button>
+                    {idea && (
+                      <div className="border-t pt-4 mt-4 space-y-2 text-sm">
+                        <p className="font-semibold">{idea.productName}</p>
+                        <p className="text-muted-foreground">{idea.productDescription}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                  <Card>
                     <CardHeader>
                       <CardTitle>Add New Product</CardTitle>
-                      <CardDescription>Fill out the form to add a product.</CardDescription>
+                      <CardDescription>Fill out the form to add a product. Use the AI generator for inspiration!</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ProductUploadForm onSubmit={handleAddProduct} />
+                      <ProductUploadForm 
+                        onSubmit={handleAddProduct} 
+                        key={idea ? idea.productName : 'form'}
+                        initialData={idea ? { name: idea.productName, description: idea.productDescription } : undefined}
+                      />
                     </CardContent>
                   </Card>
               </div>

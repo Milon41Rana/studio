@@ -4,7 +4,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
@@ -50,12 +50,13 @@ export type ProductFormData = z.infer<typeof productFormSchema>;
 
 interface ProductUploadFormProps {
   onSubmit: (data: ProductFormData) => void;
+  initialData?: Partial<ProductFormData>;
 }
 
 const MAX_FILE_SIZE_MB = 2;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
+export function ProductUploadForm({ onSubmit, initialData }: ProductUploadFormProps) {
   const firestore = useFirestore();
   const storage = useStorage();
   const { toast } = useToast();
@@ -73,8 +74,8 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
-      name: '',
-      description: '',
+      name: initialData?.name || '',
+      description: initialData?.description || '',
       regularPrice: 0,
       salePrice: undefined,
       stockQuantity: 0,
@@ -83,6 +84,16 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
       variants: '',
     },
   });
+  
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        ...form.getValues(),
+        name: initialData.name || '',
+        description: initialData.description || '',
+      });
+    }
+  }, [initialData, form]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -193,7 +204,7 @@ export function ProductUploadForm({ onSubmit }: ProductUploadFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea placeholder="Describe the product in detail..." {...field} />
+                <Textarea placeholder="Describe the product in detail..." {...field} rows={5} />
               </FormControl>
               <FormMessage />
             </FormItem>
