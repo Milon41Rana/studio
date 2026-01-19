@@ -1,3 +1,5 @@
+
+      
 'use client';
     
 import { useState, useEffect } from 'react';
@@ -91,3 +93,5 @@ export function useDoc<T = any>(
 
   return { data, isLoading, error };
 }
+
+    

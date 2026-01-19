@@ -1,3 +1,5 @@
+
+      
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -37,3 +39,5 @@ export function FirebaseErrorListener() {
   // This component renders nothing.
   return null;
 }
+
+    

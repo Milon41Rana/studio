@@ -1,4 +1,5 @@
 
+      
 'use client';
 
 import Image from 'next/image';
@@ -84,3 +85,5 @@ export function ProductCard({ product }: ProductCardProps) {
     </Card>
   );
 }
+
+    

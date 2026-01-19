@@ -1,4 +1,5 @@
 
+      
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
@@ -26,7 +27,7 @@ function ProductGrid() {
     let q = collection(firestore, 'products');
     
     // Start with a base query ordered by title
-    let finalQuery: Query = query(q, orderBy('title'));
+    let finalQuery = query(q, orderBy('title'));
 
     return finalQuery;
   }, [firestore]);
@@ -130,3 +131,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

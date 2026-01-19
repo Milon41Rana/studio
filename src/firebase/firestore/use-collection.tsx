@@ -1,3 +1,5 @@
+
+      
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -115,3 +117,5 @@ export function useCollection<T = any>(
 
   return { data, isLoading, error };
 }
+
+    

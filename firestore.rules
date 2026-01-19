@@ -1,4 +1,5 @@
 
+      
 /**
  * # Firebase Security Rules
  *
@@ -237,3 +238,5 @@ service firebase.storage {
     }
   }
 }
+
+    

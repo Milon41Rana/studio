@@ -1,4 +1,5 @@
 
+      
 'use client';
 
 import { useState } from 'react';
@@ -91,3 +92,5 @@ export function PaymentSimulationDialog({ isOpen, onClose, onConfirm, totalAmoun
     </Dialog>
   );
 }
+
+    

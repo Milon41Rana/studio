@@ -1,3 +1,5 @@
+
+      
 'use client';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -62,3 +64,5 @@ function createEventEmitter<T extends Record<string, any>>() {
 
 // Create and export a singleton instance of the emitter, typed with our AppEvents interface.
 export const errorEmitter = createEventEmitter<AppEvents>();
+
+    

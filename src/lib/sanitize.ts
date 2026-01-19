@@ -1,4 +1,5 @@
 
+      
 import type { Product } from './types';
 
 /**
@@ -25,3 +26,5 @@ export function sanitizeProductForFirebase(product: Product): Product {
 
   return sanitizedProduct;
 }
+
+    

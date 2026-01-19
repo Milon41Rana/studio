@@ -1,4 +1,5 @@
 
+      
 'use client';
 
 import React from 'react';
@@ -142,3 +143,5 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     </>
   );
 }
+
+    

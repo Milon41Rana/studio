@@ -1,3 +1,5 @@
+
+      
 'use client';
 import {
   Auth, // Import Auth type for type hinting
@@ -28,3 +30,5 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
   return signInWithEmailAndPassword(authInstance, email, password);
   // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
+
+    
