@@ -45,12 +45,15 @@ export function Header() {
           <Package className="h-6 w-6 text-primary" />
           <span className="font-headline hidden md:inline">Super Shop</span>
         </Link>
-        <div className="flex-1 md:flex-none md:w-auto">
-          <SearchBar />
+        <div className="flex-1">
+           <SearchBar />
         </div>
-        <nav className="hidden md:flex items-center space-x-4 text-sm font-medium ml-auto">
+        <nav className="hidden md:flex items-center space-x-2 text-sm font-medium ml-auto">
           <Button variant="ghost" asChild>
             <Link href="/">Home</Link>
+          </Button>
+           <Button variant="ghost" asChild>
+            <Link href="/ui-generator">UI Gen</Link>
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/cart">Cart</Link>
