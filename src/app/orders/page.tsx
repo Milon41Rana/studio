@@ -102,7 +102,7 @@ export default function OrdersPage() {
             <Card key={order.id} className="overflow-hidden">
               <CardHeader className="flex flex-row justify-between items-start bg-muted/30 p-4">
                 <div>
-                  <CardTitle className="text-lg">Order #{order.id.slice(0, 7)}</CardTitle>
+                  <CardTitle className="text-lg">Order #${order.id.slice(0, 7)}</CardTitle>
                   <CardDescription>
                     Placed on: {new Date(order.orderDate.seconds * 1000).toLocaleDateString()}
                   </CardDescription>
