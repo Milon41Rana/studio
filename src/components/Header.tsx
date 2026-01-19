@@ -16,6 +16,7 @@ const SearchBar = dynamic(
   () => import('./SearchBar').then(mod => mod.SearchBar),
   { 
     ssr: false,
+    loading: () => <Skeleton className="h-10 w-full max-w-md" />
   }
 );
 

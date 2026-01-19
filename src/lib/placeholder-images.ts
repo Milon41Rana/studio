@@ -1,8 +1,5 @@
 import data from './placeholder-images.json';
 
-// Correctly destructure the nested array
-const { placeholderImages: images } = data;
-
 export type ImagePlaceholder = {
   id: string;
   description: string;
@@ -10,5 +7,5 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
-// Assign the destructured and renamed variable
-export const PlaceHolderImages: ImagePlaceholder[] = images;
+// The JSON file has a top-level key "placeholderImages" which contains the array.
+export const PlaceHolderImages: ImagePlaceholder[] = data.placeholderImages;
