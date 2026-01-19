@@ -1,5 +1,6 @@
+import data from './placeholder-images.json';
 
-import { placeholderImages } from './placeholder-images.json';
+const { placeholderImages } = data;
 
 export type ImagePlaceholder = {
   id: string;

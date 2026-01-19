@@ -3,14 +3,22 @@
 import Link from 'next/link';
 import { Package } from 'lucide-react';
 import { useUser } from '@/firebase';
-import { SearchBar } from './SearchBar';
 import { Button } from './ui/button';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Suspense } from 'react';
 import { Skeleton } from './ui/skeleton';
+import dynamic from 'next/dynamic';
+
+const SearchBar = dynamic(
+  () => import('./SearchBar').then(mod => mod.SearchBar),
+  { 
+    ssr: false,
+    loading: () => <Skeleton className="h-10 w-full max-w-md" />
+  }
+);
+
 
 export function Header() {
   const { user } = useUser();
@@ -48,9 +56,7 @@ export function Header() {
           <span className="font-headline hidden md:inline">Super Shop</span>
         </Link>
         <div className="flex-1">
-           <Suspense fallback={<Skeleton className="h-10 w-full max-w-md" />}>
-             <SearchBar />
-           </Suspense>
+          <SearchBar />
         </div>
         <nav className="hidden md:flex items-center space-x-2 text-sm font-medium ml-auto">
           <Button variant="ghost" asChild>
