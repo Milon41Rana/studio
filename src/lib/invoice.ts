@@ -128,3 +128,5 @@ export const generateInvoiceHTML = (order: Order, customerName: string): string 
     </html>
   `;
 };
+
+    

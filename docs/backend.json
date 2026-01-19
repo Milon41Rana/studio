@@ -111,7 +111,7 @@
         },
         "status": {
           "type": "string",
-          "enum": ["Pending", "Delivered"],
+          "enum": ["Pending", "Processing", "Delivered"],
           "description": "The current status of the order."
         }
       },
@@ -337,4 +337,6 @@
     "reasoning": "The Firestore structure is designed to store product, category, order, and user data for the Super Shop e-commerce application. It prioritizes a clear structure for data management and easy querying while maintaining security.  The structure leverages path-based ownership for user-related data (orders, carts) and a top-level collection for globally accessible data (products, categories). Products are stored in a top-level collection for easy global querying on the home page, while orders and carts are stored as subcollections under each user, ensuring clear ownership and simplified security rules. A denormalized top-level `orders` collection is included for admin access.\n\n**Authorization Independence (CRITICAL):** Path based ownership for orders: `/users/{userId}/orders/{orderId}`.  This avoids `get()` calls to a parent document (e.g. the `User` document) to determine access.  All necessary authorization information is implicit in the path itself. Products and categories are globally accessible and thus don't require ownership checks.\n\n**QAPs (Rules are not Filters):**  The structure supports secure `list` operations:\n*   Listing products: The `products` collection enables listing all available products.\n*   Listing categories: The `categories` collection enables listing all available categories.\n*   Listing orders for a specific user: The `/users/{userId}/orders` subcollection allows listing only the orders associated with the authenticated user. This avoids the need to filter based on `userId` in the rules, improving security and performance.\n*   Listing all orders for admin: The `/orders` collection allows an admin to view all orders without needing a collection group query.\n\n**Data Clarity and Predictability:** The structure uses clear and consistent naming conventions (e.g., `products`, `categories`, `orders`) to enhance readability and maintainability.  This predictability makes it easier to understand the purpose of each collection and document, which will improve debuggability."
   }
 }
+    
+
     
