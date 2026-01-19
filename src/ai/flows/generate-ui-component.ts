@@ -1,5 +1,4 @@
 
-      
 'use server';
 /**
  * @fileOverview An AI flow to generate React UI components from a text prompt.
@@ -58,5 +57,3 @@ const generateUiComponentFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

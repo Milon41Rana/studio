@@ -1,5 +1,4 @@
 
-      
 'use client';
 
 import React, { useMemo, type ReactNode } from 'react';
@@ -27,5 +26,3 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     </FirebaseProvider>
   );
 }
-
-    

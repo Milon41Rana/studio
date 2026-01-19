@@ -1,5 +1,11 @@
-# Settings to manage and configure a Firebase App Hosting backend.
+# This file configures Firebase App Hosting, a hosting solution provided by Google.
+# It's a powerful option, especially if your backend is deeply integrated with other Firebase services.
 # https://firebase.google.com/docs/app-hosting/configure
+#
+# --- Vercel as an Alternative ---
+# For many Next.js projects, Vercel (vercel.com) is a very popular and easy-to-use alternative.
+# If you choose to deploy this project on Vercel, you can safely ignore this file.
+# The standard deployment process on Vercel typically requires no special configuration file.
 
 runConfig:
   # Increase this value if you'd like to automatically spin up

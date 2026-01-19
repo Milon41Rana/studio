@@ -1,5 +1,4 @@
 
-      
 'use client';
 
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -141,5 +140,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    

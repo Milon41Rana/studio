@@ -1,5 +1,4 @@
 
-      
 import { FirebaseOptions } from 'firebase/app';
 
 // This config now reads from environment variables.
@@ -13,5 +12,3 @@ export const firebaseConfig: FirebaseOptions = {
   messagingSenderId: "964859641752",
   appId: "1:964859641752:web:795109c451c2f06a62b5ed",
 };
-
-    

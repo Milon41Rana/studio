@@ -1,5 +1,4 @@
 
-      
 'use server';
 /**
  * @fileOverview An AI flow to generate new product ideas for an e-commerce store.
@@ -55,5 +54,3 @@ const generateProductIdeaFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

@@ -1,3 +1,4 @@
+
 import { placeholderImages } from './placeholder-images.json';
 
 export type ImagePlaceholder = {

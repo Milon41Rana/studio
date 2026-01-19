@@ -1,5 +1,4 @@
 
-      
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -112,5 +111,3 @@ export default function UiGeneratorPage() {
     </div>
   );
 }
-
-    

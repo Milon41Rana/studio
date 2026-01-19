@@ -1,5 +1,4 @@
 
-      
 'use client';
 import { Timestamp } from 'firebase/firestore';
 
@@ -129,5 +128,3 @@ export const generateInvoiceHTML = (order: Order, customerName: string): string 
     </html>
   `;
 };
-
-    
