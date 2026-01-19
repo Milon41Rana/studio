@@ -1,6 +1,7 @@
 import data from './placeholder-images.json';
 
-const { placeholderImages } = data;
+// Correctly destructure the nested array
+const { placeholderImages: images } = data;
 
 export type ImagePlaceholder = {
   id: string;
@@ -9,4 +10,5 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
-export const PlaceHolderImages: ImagePlaceholder[] = placeholderImages;
+// Assign the destructured and renamed variable
+export const PlaceHolderImages: ImagePlaceholder[] = images;

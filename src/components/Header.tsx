@@ -10,12 +10,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from './ui/skeleton';
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 
 const SearchBar = dynamic(
   () => import('./SearchBar').then(mod => mod.SearchBar),
   { 
     ssr: false,
-    loading: () => <Skeleton className="h-10 w-full max-w-md" />
   }
 );
 
@@ -56,7 +56,9 @@ export function Header() {
           <span className="font-headline hidden md:inline">Super Shop</span>
         </Link>
         <div className="flex-1">
-          <SearchBar />
+          <Suspense fallback={<Skeleton className="h-10 w-full max-w-md" />}>
+            <SearchBar />
+          </Suspense>
         </div>
         <nav className="hidden md:flex items-center space-x-2 text-sm font-medium ml-auto">
           <Button variant="ghost" asChild>
