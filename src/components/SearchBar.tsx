@@ -8,7 +8,6 @@ import { useDebounce } from '@/hooks/use-debounce';
 
 export function SearchBar() {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -22,19 +21,17 @@ export function SearchBar() {
       current.set('q', debouncedSearchTerm);
     }
     
-    // We only want search on the homepage
-    if (pathname === '/') {
-        const search = current.toString();
-        const query = search ? `?${search}` : '';
-        router.push(`${pathname}${query}`);
+    // Always redirect to the homepage for searching
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+
+    // Only push if the query is different from the current URL's query,
+    // to avoid unnecessary re-renders on page load.
+    if (`/${query}` !== `${window.location.pathname}${window.location.search}`) {
+       router.push(`/${query}`);
     }
 
-  }, [debouncedSearchTerm, pathname, router, searchParams]);
-
-  // If not on the homepage, don't render the search bar
-  if (pathname !== '/') {
-    return null;
-  }
+  }, [debouncedSearchTerm, router, searchParams]);
 
   return (
     <div className="relative w-full max-w-md">
