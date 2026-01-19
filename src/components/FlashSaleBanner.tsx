@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import placeholderData from '@/lib/placeholder-images.json';
 
 export function FlashSaleBanner() {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
@@ -35,7 +34,7 @@ export function FlashSaleBanner() {
     return () => clearInterval(timer);
   }, []);
 
-  const bannerImage = PlaceHolderImages.find(img => img.id === 'flash-sale-banner');
+  const bannerImage = placeholderData.placeholderImages.find(img => img.id === 'flash-sale-banner');
 
   const formatTime = (time: number) => time.toString().padStart(2, '0');
 

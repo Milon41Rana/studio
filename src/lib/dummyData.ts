@@ -1,10 +1,10 @@
 
-import { PlaceHolderImages } from './placeholder-images';
+import placeholderData from './placeholder-images.json';
 import type { Product, Category } from './types';
 
 
 const findImage = (id: string) => {
-  const image = PlaceHolderImages.find(img => img.id === id);
+  const image = placeholderData.placeholderImages.find(img => img.id === id);
   if (!image) {
     // Fallback if image is not found in placeholder data
     console.warn(`Placeholder image with id '${id}' not found. Using a default fallback.`);
